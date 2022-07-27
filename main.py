@@ -4,7 +4,7 @@ from tkinter import messagebox
 from ttkthemes import ThemedStyle
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
+from pygame import mixer
 
 # Definitions
 def testPopUp():
@@ -13,6 +13,14 @@ def testPopUp():
 def clearPacks():
     # page.pack_forget()
     pass
+
+# Pygame mixer
+mixer.init()
+mixer.music.load("music/stems/TameImpala_Elephant/drums.wav")
+mixer.music.play()
+#mixer.set_num_channels(5)
+#channel1 = mixer.Channel(0)
+#channel1.play("music/stems/TameImpala_Elephant/Drums")
 
 # Setting up Tkinter window
 window = Tk()
@@ -24,14 +32,6 @@ window.geometry("1250x750")
 
 # Creating the menu bar
 menuBar = Menu(window)  
-file = Menu(menuBar)  
-file.add_command(label="New")  
-file.add_command(label="Open")
-file.add_command(label="Save")  
-file.add_command(label="Save as")    
-file.add_separator()  
-file.add_command(label="Exit", command=window.quit)  
-menuBar.add_cascade(label="File", menu=file)  
 
 sightReading = Menu(menuBar)
 sightReading.add_command(label="Tutorial")
