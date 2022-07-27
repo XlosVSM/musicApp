@@ -16,11 +16,27 @@ def clearPacks():
 
 # Pygame mixer
 mixer.init()
-mixer.music.load("music/stems/TameImpala_Elephant/drums.wav")
-mixer.music.play()
-#mixer.set_num_channels(5)
-#channel1 = mixer.Channel(0)
-#channel1.play("music/stems/TameImpala_Elephant/Drums")
+mixer.set_num_channels(5)
+
+channel1 = mixer.Channel(0)
+channel1Sound = mixer.Sound("music/stems/TameImpala_Elephant/bass.wav")
+channel1.play(channel1Sound)
+
+channel2 = mixer.Channel(1)
+channel2Sound = mixer.Sound("music/stems/TameImpala_Elephant/drums.wav")
+channel2.play(channel2Sound)
+
+channel3 = mixer.Channel(2)
+channel3Sound = mixer.Sound("music/stems/TameImpala_Elephant/other.wav")
+channel3.play(channel3Sound)
+
+channel4 = mixer.Channel(3)
+channel4Sound = mixer.Sound("music/stems/TameImpala_Elephant/piano.wav")
+channel4.play(channel4Sound)
+
+channel5 = mixer.Channel(4)
+channel5Sound = mixer.Sound("music/stems/TameImpala_Elephant/vocals.wav")
+channel5.play(channel5Sound)
 
 # Setting up Tkinter window
 window = Tk()
@@ -73,6 +89,15 @@ canvas.pack()
 # Testing adding a button
 btn = Button(window, text = "Grade One", command = testPopUp, highlightbackground = "floral white")
 btn.pack()
+
+# Testing adding a slider
+def volume(x):
+    volume = vocalsSlider.get()/100 # Range must be viewed as decimals between 0 - 1, so dividing by 100 makes it work
+    channel5.set_volume(volume)
+
+vocalsSlider = Scale(window, from_ = 0, to=100, orient=HORIZONTAL, command=volume)
+vocalsSlider.set(100)
+vocalsSlider.pack()
 
 # Keep the window running unless closed
 window.mainloop()
