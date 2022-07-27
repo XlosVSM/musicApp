@@ -2,10 +2,17 @@
 from tkinter import *
 from tkinter import messagebox
 from ttkthemes import ThemedStyle
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 
 # Definitions
 def testPopUp():
     messagebox.showinfo('Test', 'Testy test')
+
+def clearPacks():
+    # page.pack_forget()
+    pass
 
 # Setting up Tkinter window
 window = Tk()
