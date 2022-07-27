@@ -3,8 +3,9 @@ from tkinter import *
 from tkinter import messagebox
 from ttkthemes import ThemedStyle
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message
 from pygame import mixer
+from PIL import ImageTk, Image
 
 # Definitions
 def testPopUp():
@@ -91,13 +92,28 @@ btn = Button(window, text = "Grade One", command = testPopUp, highlightbackgroun
 btn.pack()
 
 # Testing adding a slider
-def volume(x):
+def vocalVolume(x):
     volume = vocalsSlider.get()/100 # Range must be viewed as decimals between 0 - 1, so dividing by 100 makes it work
     channel5.set_volume(volume)
 
-vocalsSlider = Scale(window, from_ = 0, to=100, orient=HORIZONTAL, command=volume)
+def drumsVolume(x):
+    volume = drumsSlider.get()/100
+    channel2.set_volume(volume)
+
+vocalsSlider = Scale(window, from_ = 100, to = 0, command=vocalVolume)
 vocalsSlider.set(100)
-vocalsSlider.pack()
+vocalsSlider.pack(side = LEFT)
+
+drumsSlider = Scale(window, from_ = 100, to = 0, command = drumsVolume)
+drumsSlider.set(100)
+drumsSlider.pack(side = LEFT)
+
+# Test adding an image
+image1 = Image.open("images/test.png")
+img = ImageTk.PhotoImage(image1)
+panel = Label(window, image = img)
+panel.pack()
 
 # Keep the window running unless closed
-window.mainloop()
+if __name__ == "__main__":
+    window.mainloop()
