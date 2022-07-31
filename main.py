@@ -4,8 +4,9 @@ from tkinter import messagebox
 from ttkthemes import ThemedStyle
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message
-from pygame import mixer
+from pygame import mixer # https://stackoverflow.com/questions/17292444/pygame-mixer-save-audio-to-disk
 from PIL import ImageTk, Image
+from command import run # Used to run the console commands in Python, so IPython is not required # Example: res = command.run(['ls']) 
 
 # Definitions
 def testPopUp():
@@ -50,6 +51,10 @@ window.geometry("1250x750")
 # Creating the menu bar
 menuBar = Menu(window)  
 
+instrumentRoles = Menu(menuBar)
+instrumentRoles.add_command(label="Rock Band")
+menuBar.add_cascade(label="Instrument Roles", menu=instrumentRoles)
+
 sightReading = Menu(menuBar)
 sightReading.add_command(label="Tutorial")
 sightReading.add_command(label="Test")
@@ -61,18 +66,16 @@ interval.add_command(label="Melodic")
 interval.add_command(label="Harmonic")
 menuBar.add_cascade(label="Interval", menu=interval)
 
-dictation = Menu(menuBar)
-dictation.add_command(label="Tutorial")
-dictation.add_command(label="Melodic")
-dictation.add_command(label="Rhythmic")
-menuBar.add_cascade(label="Dictation", menu=dictation)
-
 chords = Menu(menuBar)
 chords.add_command(label="Tutorial")
-chords.add_command(label="Progressions")
 chords.add_command(label="Chord Quality")
-chords.add_command(label="7th Chord Quality")
+chords.add_command(label="Cadences")
 menuBar.add_cascade(label="Chords", menu=chords)
+
+terminology = Menu(menuBar)
+terminology.add_command(label="Tutorial")
+terminology.add_command(label="Flash Cards")
+menuBar.add_cascade(label="Terminology", menu=terminology)
 
 instrumentPractice = Menu(menuBar)
 instrumentPractice.add_command(label="Choose song")
