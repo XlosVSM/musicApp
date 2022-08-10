@@ -84,7 +84,7 @@ menuBar.add_cascade(label="Instrument Practice", menu = instrumentPractice)
 
 window.config(menu=menuBar)
 
-canvas= Canvas(window, width= 500, height= 50, bg="SpringGreen2")
+canvas = Canvas(window, width= 500, height= 50, bg="SpringGreen2")
 
 #Add a text in Canvas
 canvas.create_text(250, 20, text="HELLO WORLD", fill="black", font=('Helvetica 15 bold'))
