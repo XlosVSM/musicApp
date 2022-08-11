@@ -1,10 +1,40 @@
-# Imports
+##### Imports #####
+from termcolor import colored # Used for links and needed 
+
+# GUI creation
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
-# Definitions
+# Music
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
+from pygame import mixer # To play the individual stems at the same time
+try:
+    from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
+
+except ModuleNotFoundError: # This helps users have a better understanding on how to get the package to work
+    link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
+    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps.')
+    exit()
+
+# Misc
+from sys import version_info
+
+##### Definitions #####
 # Creating the menu bar
+def clearFrame():
+    # Destroy all the widgets
+    '''
+    for widget in frame.winfo_children():
+        widget.destroy()
+    '''
+
+    # Clear frames
+    '''
+    frame.pack_forget()
+    '''
+
 def createMenuBar():
     menuBar = Menu(root)  
 
@@ -51,7 +81,13 @@ def testLabels():
     button = ttk.Button(root, text="ttk Button")
     button.pack()
 
-if __name__ == "__main__":
+# https://stackoverflow.com/questions/14817210/using-buttons-in-tkinter-to-navigate-to-different-pages-of-the-application
+
+##### Main Loop #####
+if __name__ == "__main__":    
+    if version_info[0] < 3:
+        raise Exception("Python 3 is required to load the program") # This is coded in Python 3, so Python 2 will not work
+    
     # Setup Tkinter window
     root = Tk()
     root.title('App')
