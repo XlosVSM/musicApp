@@ -1,6 +1,4 @@
 ##### Imports #####
-from termcolor import colored # Used for links and needed 
-
 # GUI creation
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
@@ -14,6 +12,8 @@ try:
     from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
 
 except ModuleNotFoundError: # This helps users have a better understanding on how to get the package to work
+    from termcolor import colored
+    
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
     print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps.')
     exit()
@@ -99,3 +99,4 @@ if __name__ == "__main__":
     testLabels()
 
     root.mainloop()
+    root.lift() # To make sure the program opens in the foreground
