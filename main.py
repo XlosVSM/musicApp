@@ -98,5 +98,5 @@ if __name__ == "__main__":
     createMenuBar()
     testLabels()
 
-    root.mainloop()
     root.lift() # To make sure the program opens in the foreground
+    root.mainloop()
