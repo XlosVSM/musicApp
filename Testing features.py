@@ -92,7 +92,7 @@ canvas.pack()
 
 
 # Testing adding a button
-btn = ttk.Button(window, text = "Grade One", command = testPopUp, highlightbackground = "floral white")
+btn = Button(window, text = "Grade One", command = testPopUp, highlightbackground = "floral white")
 btn.pack()
 
 # Testing adding a slider

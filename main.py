@@ -18,9 +18,6 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps.')
     exit()
 
-# Misc
-from sys import version_info
-
 ##### Definitions #####
 # Creating the menu bar
 def clearFrame():
@@ -85,9 +82,6 @@ def testLabels():
 
 ##### Main Loop #####
 if __name__ == "__main__":    
-    if version_info[0] < 3:
-        raise Exception("Python 3 is required to load the program") # This is coded in Python 3, so Python 2 will not work
-    
     # Setup Tkinter window
     root = Tk()
     root.title('App')

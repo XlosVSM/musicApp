@@ -1,2 +1,2 @@
-# musicApp
+# Music Teaching App
  
