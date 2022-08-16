@@ -1,13 +1,14 @@
 ##### Imports #####
 # GUI creation
 from tkinter import *
+from tkinter import messagebox
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
 # Music
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
-from pygame import mixer # To play the individual stems at the same time
+from pygame import mixer # To play the individual stems simultaneously
 try:
     from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
 
@@ -64,33 +65,71 @@ def createMenuBar():
     instrumentPractice = Menu(menuBar, tearoff="off")
     instrumentPractice.add_command(label="Choose song")
     menuBar.add_cascade(label="Instrument Practice", menu = instrumentPractice)
+    
+    preferences = Menu(menuBar, tearoff="off")
+    preferences.add_command(label="Settings")
+    menuBar.add_cascade(label = "Preferences", menu = preferences)
 
     root.config(menu=menuBar)
 
+def createFrames():
+    global homeFrame
+    
+    height = root.winfo_height()
+    width = root.winfo_width()
+    
+    homeFrame = ttk.Frame(root, height = height, width = width)
+
+def homePage():
+    pass
+
 def testLabels():
-    tktext = Label(root, text=" tk Label")
-    tktext.pack()
-    tkbutton = Button(root, text="tk Button")
-    tkbutton.pack()
+    tkText = Label(root, text=" tk Label")
+    tkText.pack()
+    tkButton = Button(root, text="tk Button")
+    tkButton.pack()
 
     text = ttk.Label(root, text=" ttk Label")
     text.pack()
     button = ttk.Button(root, text="ttk Button")
     button.pack()
-
+   
+# Testing switching between dark and light mode 
+def simpleToggle():
+    if toggleButton.config('text')[-1] == 'Dark Mode':
+        style.theme_use("yaru")
+        toggleButton.config(text='Light Mode')
+        
+    else:
+        style.theme_use("equilux")
+        toggleButton.config(text='Dark Mode')
+        
 # https://stackoverflow.com/questions/14817210/using-buttons-in-tkinter-to-navigate-to-different-pages-of-the-application
 
 ##### Main Loop #####
-if __name__ == "__main__":    
+if __name__ == "__main__": 
+    # https://www.pythontutorial.net/python-basics/python-read-text-file/  
+    # Pop up to check if this is users first time using app
+    with open('info.txt') as f:
+        lines = f.readlines()
+    
+    print(lines)
+      
     # Setup Tkinter window
     root = Tk()
     root.title('App')
     style = ThemedStyle(root)
-    style.set_theme("yaru") # yaru is used for light mode, equilux is used for dark mode
     root.state('zoomed') # Makes the program take up fullscreen while being windowed
+    
+    style.set_theme("yaru") # yaru is used for light mode, equilux is used for dark mode
 
     createMenuBar()
+    createFrames()
+    homePage()
     testLabels()
+    
+    toggleButton = Button(text="Light Mode", width=10, command=simpleToggle)
+    toggleButton.pack(pady=10)
 
     root.lift() # To make sure the program opens in the foreground
     root.mainloop()
