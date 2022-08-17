@@ -108,20 +108,29 @@ def simpleToggle():
 
 ##### Main Loop #####
 if __name__ == "__main__": 
-    # https://www.pythontutorial.net/python-basics/python-read-text-file/  
-    # Pop up to check if this is users first time using app
-    with open('info.txt') as f:
-        lines = f.readlines()
+    try:
+        with open('preferences.txt', 'r'):
+            lines = f.readlines()
+        
+    except FileNotFoundError:
+        #popup = Tk()
+        modeOption = messagebox.askyesno("User Preference", "Would you like to run the code in dark mode?")
+        if modeOption == True:
+            theme = "equilux" # Dark mode
+        
+        else:
+            theme = "yaru" # Light mode
+        
+        with open('preferences.txt', 'w') as f:
+            f.write(theme)
     
-    print(lines)
-      
     # Setup Tkinter window
     root = Tk()
     root.title('App')
     style = ThemedStyle(root)
     root.state('zoomed') # Makes the program take up fullscreen while being windowed
     
-    style.set_theme("yaru") # yaru is used for light mode, equilux is used for dark mode
+    style.set_theme(theme) # yaru is used for light mode, equilux is used for dark mode
 
     createMenuBar()
     createFrames()
