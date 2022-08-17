@@ -16,19 +16,18 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     from termcolor import colored
     
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
-    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps.')
+    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
     exit()
 
 ##### Definitions #####
 # Creating the menu bar
-def clearFrame():
+def clearFrames():
     # Destroy all the widgets
-    '''
-    for widget in frame.winfo_children():
+    for widget in homeFrame.winfo_children():
         widget.destroy()
-    '''
 
     # Clear frames
+    homeFrame.pack_forget()
     '''
     frame.pack_forget()
     '''
@@ -81,7 +80,7 @@ def createFrames():
     homeFrame = ttk.Frame(root, height = height, width = width)
 
 def homePage():
-    pass
+    homeFrame.pack()
 
 def testLabels():
     tkText = Label(root, text=" tk Label")
@@ -108,12 +107,12 @@ def simpleToggle():
 
 ##### Main Loop #####
 if __name__ == "__main__": 
+    '''
     try:
         with open('preferences.txt', 'r'):
             lines = f.readlines()
         
     except FileNotFoundError:
-        #popup = Tk()
         modeOption = messagebox.askyesno("User Preference", "Would you like to run the code in dark mode?")
         if modeOption == True:
             theme = "equilux" # Dark mode
@@ -123,22 +122,18 @@ if __name__ == "__main__":
         
         with open('preferences.txt', 'w') as f:
             f.write(theme)
+    '''
     
     # Setup Tkinter window
     root = Tk()
-    root.title('App')
+    root.title("App")
     style = ThemedStyle(root)
-    root.state('zoomed') # Makes the program take up fullscreen while being windowed
-    
-    style.set_theme(theme) # yaru is used for light mode, equilux is used for dark mode
+    root.state('zoomed')
+
+    style.set_theme("yaru")
 
     createMenuBar()
     createFrames()
     homePage()
-    testLabels()
-    
-    toggleButton = Button(text="Light Mode", width=10, command=simpleToggle)
-    toggleButton.pack(pady=10)
 
-    root.lift() # To make sure the program opens in the foreground
     root.mainloop()

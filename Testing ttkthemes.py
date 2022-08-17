@@ -1,23 +1,61 @@
+'''
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedStyle
 
-app = tk.Tk()
-app.title('App')
+root = tk.Tk()
+root.title('App')
 
-style = ThemedStyle(app)
-style.set_theme("arc")
+style = ThemedStyle(root)
+style.set_theme("yaru")
 
-tktext = tk.Label(app, text=" tk Label")
+height = root.winfo_height()
+width = root.winfo_width()
+    
+homeFrame = ttk.Frame(root, height = height, width = width)
+homeFrame.pack()
+
+tktext = tk.Label(root, text=" tk Label")
 tktext.pack()
-tkbutton = tk.Button(app, text="tk Button")
+tkbutton = tk.Button(root, text="tk Button")
 tkbutton.pack()
 
-text = ttk.Label(app, text=" ttk Label")
+text = ttk.Label(root, text=" ttk Label")
 text.pack()
-button = ttk.Button(app, text="ttk Button")
+button = ttk.Button(root, text="ttk Button")
 button.pack()
 
-app.geometry('200x200')
+root.geometry('200x200')
 
-app.mainloop()
+root.mainloop()
+'''
+# Imports
+from tkinter import *
+from tkinter import ttk
+from ttkthemes import ThemedStyle
+
+def createFrames():
+    global homeFrame
+
+    height = root.winfo_height()
+    width = root.winfo_width()
+
+    homeFrame = ttk.Frame(root, height = height, width = width)
+
+def homePage():
+    homeFrame.pack()
+
+##### Main Loop #####
+# Setup Tkinter window
+root = Tk()
+root.title('App')
+style = ThemedStyle(root)
+root.state('zoomed')
+
+style.set_theme("yaru")
+
+createFrames()
+homePage()
+
+root.lift()
+root.mainloop()
