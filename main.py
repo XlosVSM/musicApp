@@ -1,7 +1,6 @@
 ##### Imports #####
 # GUI creation
 from tkinter import *
-from tkinter import messagebox
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
@@ -9,6 +8,7 @@ from ttkthemes import ThemedStyle
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
 from pygame import mixer # To play the individual stems simultaneously
+'''
 try:
     from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
 
@@ -18,6 +18,10 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
     print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
     exit()
+'''
+
+# Miscellaneous
+from darkdetect import isDark # Used for start up mode
 
 ##### Definitions #####
 # Creating the menu bar
@@ -81,17 +85,8 @@ def createFrames():
 
 def homePage():
     homeFrame.pack()
-
-def testLabels():
-    tkText = Label(root, text=" tk Label")
-    tkText.pack()
-    tkButton = Button(root, text="tk Button")
-    tkButton.pack()
-
-    text = ttk.Label(root, text=" ttk Label")
-    text.pack()
-    button = ttk.Button(root, text="ttk Button")
-    button.pack()
+    testButton = ttk.Button(root, text = "Test")
+    testButton.pack()
    
 # Testing switching between dark and light mode 
 def simpleToggle():
@@ -106,31 +101,43 @@ def simpleToggle():
 # https://stackoverflow.com/questions/14817210/using-buttons-in-tkinter-to-navigate-to-different-pages-of-the-application
 
 ##### Main Loop #####
-if __name__ == "__main__": 
-    '''
+if __name__ == "__main__":
     try:
-        with open('preferences.txt', 'r'):
-            lines = f.readlines()
+        with open('theme.txt') as f:
+            line = f.readline()
+            
+        if line == "dark":
+            theme = "equilux"
         
+        elif line == "light":
+            theme = "yaru"
+            
+        else: # If file is tampered with
+            print("Please delete the file theme.txt and run the code again.")
+            exit()
+    
     except FileNotFoundError:
-        modeOption = messagebox.askyesno("User Preference", "Would you like to run the code in dark mode?")
-        if modeOption == True:
-            theme = "equilux" # Dark mode
+        darkMode = isDark() # Gets the users OS mode to be starter
+        
+        if darkMode == True:
+            theme = "equilux"
+            
+            with open('theme.txt', 'w') as f:
+                f.write("dark")
         
         else:
-            theme = "yaru" # Light mode
-        
-        with open('preferences.txt', 'w') as f:
-            f.write(theme)
-    '''
-    
+            theme = "yaru"
+            
+            with open('theme.txt', 'w') as f:
+                f.write("light")
+         
     # Setup Tkinter window
     root = Tk()
     root.title("App")
     style = ThemedStyle(root)
     root.state('zoomed')
 
-    style.set_theme("yaru")
+    style.set_theme(theme)
 
     createMenuBar()
     createFrames()
