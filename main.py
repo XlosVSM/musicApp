@@ -8,7 +8,7 @@ from ttkthemes import ThemedStyle
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
 from pygame import mixer # To play the individual stems simultaneously
-'''
+
 try:
     from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
 
@@ -16,9 +16,8 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     from termcolor import colored
     
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
-    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. \nDo this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
+    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
     exit()
-'''
 
 # Miscellaneous
 from darkdetect import isDark # Used for start up mode
@@ -29,12 +28,37 @@ def clearFrames():
     # Destroy all the widgets
     for widget in homeFrame.winfo_children():
         widget.destroy()
+    
+    for widget in instrumentRolesFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in tutorialFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in testFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in flashCardsFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in songChoiceFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in musicPlayerFrame.winfo_children():
+        widget.destroy()
+        
+    for widget in settingsFrame.winfo_children():
+        widget.destroy()
 
     # Clear frames
     homeFrame.pack_forget()
-    '''
-    frame.pack_forget()
-    '''
+    instrumentRolesFrame.pack_forget()
+    tutorialFrame.pack_forget()
+    testFrame.pack_forget()
+    flashCardsFrame.pack_forget()
+    songChoiceFrame.pack_forget()
+    musicPlayerFrame.pack_forget()
+    settingsFrame.pack_forget()
 
 def createMenuBar():
     menuBar = Menu(root)  
@@ -70,33 +94,23 @@ def createMenuBar():
     menuBar.add_cascade(label="Instrument Practice", menu = instrumentPractice)
     
     preferences = Menu(menuBar, tearoff="off")
-    preferences.add_command(label="Settings")
+    preferences.add_command(label="Settings", command = settings)
     menuBar.add_cascade(label = "Preferences", menu = preferences)
 
     root.config(menu=menuBar)
 
-def createFrames():
-    global homeFrame
+# Page commands
+def home():
+    global testButton 
     
-    height = root.winfo_height()
-    width = root.winfo_width()
-    
-    homeFrame = ttk.Frame(root, height = height, width = width)
-
-def homePage():
+    clearFrames()
     homeFrame.pack()
     testButton = ttk.Button(root, text = "Test")
     testButton.pack()
-   
-# Testing switching between dark and light mode 
-def simpleToggle():
-    if toggleButton.config('text')[-1] == 'Dark Mode':
-        style.theme_use("yaru")
-        toggleButton.config(text='Light Mode')
-        
-    else:
-        style.theme_use("equilux")
-        toggleButton.config(text='Dark Mode')
+
+def settings():
+    clearFrames()
+    settingsFrame.pack()   
         
 # https://stackoverflow.com/questions/14817210/using-buttons-in-tkinter-to-navigate-to-different-pages-of-the-application
 
@@ -130,17 +144,27 @@ if __name__ == "__main__":
             
             with open('theme.txt', 'w') as f:
                 f.write("light")
-         
+    
     # Setup Tkinter window
     root = Tk()
     root.title("App")
     style = ThemedStyle(root)
     root.state('zoomed')
-
     style.set_theme(theme)
-
+    
+    # Create frames
+    height = root.winfo_height()
+    width = root.winfo_width()
+    
+    homeFrame = ttk.Frame(root, height = height, width = width)
+    instrumentRolesFrame = ttk.Frame(root, height = height, width = width)
+    tutorialFrame = ttk.Frame(root, height = height, width = width)
+    testFrame = ttk.Frame(root, height = height, width = width)
+    flashCardsFrame = ttk.Frame(root, height = height, width = width)
+    songChoiceFrame = ttk.Frame(root, height = height, width = width)
+    musicPlayerFrame = ttk.Frame(root, height = height, width = width)
+    settingsFrame = ttk.Frame(root, height = height, width = width)
     createMenuBar()
-    createFrames()
-    homePage()
+    home()
 
     root.mainloop()
