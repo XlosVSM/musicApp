@@ -4,89 +4,90 @@ from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
-# Misc
-from darkdetect import isDark # Used for first time use
-
 # https://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/
 
 ##### Classes #####
 class musicApp(Tk):
     def __init__(self):
-        super().__init__()
+        Tk.__init__(self)
         
+        # Style the code
         self.title("Music App")
         style = ThemedStyle(self)
         self.state("zoomed")
         style.set_theme(theme)
         
-        container = ttk.Frame(self)
-        container.pack(side = "top", fill = "both", expand = True)
-  
-        container.grid_rowconfigure(0, weight = 1)
-        container.grid_columnconfigure(0, weight = 1)
+        # Open on the starting page
+        self._frame = None
+        self.switchFrame(StartPage)
+    
+    def addMenu(self, menuName, commands):
+        menu = Menu(self.menuBar, tearoff = 0)
         
-        # Initialising frames to an empty array
-        self.frames = {}
+        for command in commands:
+            menu.add_command(label = command[0], command = command[1])
+            
+        self.menuBar.add_cascade(label = menuName, menu = menu)
+    
+    def switchFrame(self, frameClass):
+        newFrame = frameClass(self)
+        if self._frame is not None:
+            self._frame.destroy()
+        self._frame = newFrame
+        self._frame.pack()
+
+class MenuBar():
+    def __init__(self, parent):
+        self.menuBar = Menu(parent)
+        self.create()
         
-        # iterating through a tuple consisting of the different page layouts
-        for i in (StartPage):
-            frame = i(container, self)
-            
-            # initialising frame of that object from StartPage respectively with for loop
-            self.frames[i] = frame
-            
-            frame.grid(row = 0, column = 0, sticky = "nsew")
-            
-        self.show_frame(StartPage)
+    def create(self):
+        app.config(menu = self.menuBar)
         
+    def addMenu(self, menuName, commands):
+        menu = Menu(self.menuBar, tearoff = 0)
+        
+        for command in commands:
+            menu.add_command(label = command[0], command = command[1])
+            
+        self.menuBar.add_cascade(label = menuName, menu = menu)
+
 class StartPage(ttk.Frame):
-    def __init__(self, parent, controller):
-        super().__init__()
-        label = ttk.Label(self, text = "Test")
+    def __init__(self, master):
+        ttk.Frame.__init__(self, master)
         
-##### Definitions ######   
-def settings():
-    pass  
-   
-def createMenuBar():
-    menuBar = Menu(app)  
-
-    instrumentRoles = Menu(menuBar, tearoff="off") # tearoff removes dotted lines
-    instrumentRoles.add_command(label="Rock Band")
-    menuBar.add_cascade(label="Instrument Roles", menu=instrumentRoles)
-
-    sightReading = Menu(menuBar, tearoff="off")
-    sightReading.add_command(label="Tutorial")
-    sightReading.add_command(label="Test")
-    menuBar.add_cascade(label="Sight Reading", menu=sightReading)
-
-    interval = Menu(menuBar, tearoff="off")
-    interval.add_command(label="Tutorial")
-    interval.add_command(label="Melodic")
-    interval.add_command(label="Harmonic")
-    menuBar.add_cascade(label="Interval", menu=interval)
-
-    chords = Menu(menuBar, tearoff="off")
-    chords.add_command(label="Tutorial")
-    chords.add_command(label="Chord Quality")
-    chords.add_command(label="Cadences")
-    menuBar.add_cascade(label="Chords", menu=chords)
-
-    terminology = Menu(menuBar, tearoff="off")
-    terminology.add_command(label="Tutorial")
-    terminology.add_command(label="Flash Cards")
-    menuBar.add_cascade(label="Terminology", menu=terminology)
-
-    instrumentPractice = Menu(menuBar, tearoff="off")
-    instrumentPractice.add_command(label="Choose song")
-    menuBar.add_cascade(label="Instrument Practice", menu = instrumentPractice)
+        ttk.Label(self, text = "TEST").pack()
+        
+        ttk.Button(self, text = "Settings", command = lambda: master.switchFrame(SettingsPage)).pack()
+        
+class SettingsPage(ttk.Frame):
+    def __init__(self, master):
+        ttk.Frame.__init__(self, master)
+        
+        ttk.Label(self, text = "WE HERE NOW").pack()
+        
+        ttk.Button(self, text = "Home", command = lambda: master.switchFrame(StartPage)).pack()
+        
+        
+##### Definitions ######      
+def firstTheme():
+    from darkdetect import isDark
     
-    preferences = Menu(menuBar, tearoff="off")
-    preferences.add_command(label="Settings", command = settings)
-    menuBar.add_cascade(label = "Preferences", menu = preferences)
-
-    app.config(menu=menuBar)
+    if isDark() == True:
+        theme = "equilux"
     
+    else:
+        theme = "yaru"
+        
+    # Create a file so the code uses the theme next time the user runs the code
+    with open('theme.txt', 'w') as i:
+        i.write(theme)
+    
+    return theme
+    
+def testPass():
+    pass
+
 ##### Main code #####    
 if __name__ == "__main__":
     # Try getting the user's preferred theme
@@ -96,16 +97,7 @@ if __name__ == "__main__":
     
     # First time use
     except FileNotFoundError:
-        darkMode = isDark()
-        
-        if darkMode == True:
-            theme = "equilux"
-        
-        else:
-            theme = "yaru"
-        
-        with open('theme.txt', 'w') as f:
-            f.write(theme)
+        theme = firstTheme()
     
     # Run the app
     try:
@@ -114,9 +106,58 @@ if __name__ == "__main__":
     # If theme.txt has been altered externally
     except TclError:
         from termcolor import colored
+        
         print(colored("Please delete the file theme.txt and run the code again.", "red"))
         exit()
     
-    createMenuBar()
+    menuBar = MenuBar(app)
     
+    fileMenu = menuBar.addMenu(
+        "Instrument Roles", commands = [
+        ("Rock Band", testPass, True)
+        ],
+    )
+
+    fileMenu = menuBar.addMenu(
+        "Sight Reading", commands = [
+            ("Tutorial", testPass, True),
+            ("Test", testPass, True)
+        ]
+    )
+    
+    fileMenu = menuBar.addMenu(
+        "Intervals", commands = [
+            ("Tutorial", testPass, True),
+            ("Melodic", testPass, True),
+            ("Harmonic", testPass, True)
+        ]
+    )
+    
+    fileMenu = menuBar.addMenu(
+        "Chords", commands = [
+            ("Tutorial", testPass, True),
+            ("Chord Quality", testPass, True),
+            ("Cadences", testPass, True),
+        ]
+    )
+    
+    fileMenu = menuBar.addMenu(
+        "Terminology", commands = [
+            ("Tutorial", testPass, True),
+            ("Flash Cards", testPass, True)
+        ]
+    )
+    
+    fileMenu = menuBar.addMenu(
+        "Instrument Practice", commands = [
+        ("Choose Song", testPass, True)
+        ]
+    )
+    
+    fileMenu = menuBar.addMenu(
+        "Preferences", commands = [
+        ("Settings", testPass, True)
+        ]
+    )
+
     app.mainloop()
