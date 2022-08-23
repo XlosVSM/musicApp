@@ -1,67 +1,55 @@
 ##### Imports #####
-# GUI creation
+# GUI Creation
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
-# Music
-from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
-from pygame import mixer # To play the individual stems simultaneously
+# Misc
+from darkdetect import isDark # Used for first time use
 
-try:
-    from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
+# https://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/
 
-except ModuleNotFoundError: # This helps users have a better understanding on how to get the package to work
-    from termcolor import colored
-    
-    link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
-    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
-    exit()
-
-# Miscellaneous
-from darkdetect import isDark # Used for start up mode
-
-##### Definitions #####
-# Creating the menu bar
-def clearFrames():
-    # Destroy all the widgets
-    for widget in homeFrame.winfo_children():
-        widget.destroy()
-    
-    for widget in instrumentRolesFrame.winfo_children():
-        widget.destroy()
+##### Classes #####
+class musicApp(Tk):
+    def __init__(self):
+        super().__init__()
         
-    for widget in tutorialFrame.winfo_children():
-        widget.destroy()
+        self.title("Music App")
+        style = ThemedStyle(self)
+        self.state("zoomed")
+        style.set_theme(theme)
         
-    for widget in testFrame.winfo_children():
-        widget.destroy()
+        container = ttk.Frame(self)
+        container.pack(side = "top", fill = "both", expand = True)
+  
+        container.grid_rowconfigure(0, weight = 1)
+        container.grid_columnconfigure(0, weight = 1)
         
-    for widget in flashCardsFrame.winfo_children():
-        widget.destroy()
+        # Initialising frames to an empty array
+        self.frames = {}
         
-    for widget in songChoiceFrame.winfo_children():
-        widget.destroy()
+        # iterating through a tuple consisting of the different page layouts
+        for i in (StartPage):
+            frame = i(container, self)
+            
+            # initialising frame of that object from StartPage respectively with for loop
+            self.frames[i] = frame
+            
+            frame.grid(row = 0, column = 0, sticky = "nsew")
+            
+        self.show_frame(StartPage)
         
-    for widget in musicPlayerFrame.winfo_children():
-        widget.destroy()
+class StartPage(ttk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__()
+        label = ttk.Label(self, text = "Test")
         
-    for widget in settingsFrame.winfo_children():
-        widget.destroy()
-
-    # Clear frames
-    homeFrame.pack_forget()
-    instrumentRolesFrame.pack_forget()
-    tutorialFrame.pack_forget()
-    testFrame.pack_forget()
-    flashCardsFrame.pack_forget()
-    songChoiceFrame.pack_forget()
-    musicPlayerFrame.pack_forget()
-    settingsFrame.pack_forget()
-
+##### Definitions ######   
+def settings():
+    pass  
+   
 def createMenuBar():
-    menuBar = Menu(root)  
+    menuBar = Menu(app)  
 
     instrumentRoles = Menu(menuBar, tearoff="off") # tearoff removes dotted lines
     instrumentRoles.add_command(label="Rock Band")
@@ -97,74 +85,38 @@ def createMenuBar():
     preferences.add_command(label="Settings", command = settings)
     menuBar.add_cascade(label = "Preferences", menu = preferences)
 
-    root.config(menu=menuBar)
-
-# Page commands
-def home():
-    global testButton 
+    app.config(menu=menuBar)
     
-    clearFrames()
-    homeFrame.pack()
-    testButton = ttk.Button(root, text = "Test")
-    testButton.pack()
-
-def settings():
-    clearFrames()
-    settingsFrame.pack()   
-        
-# https://stackoverflow.com/questions/14817210/using-buttons-in-tkinter-to-navigate-to-different-pages-of-the-application
-
-##### Main Loop #####
+##### Main code #####    
 if __name__ == "__main__":
+    # Try getting the user's preferred theme
     try:
         with open('theme.txt') as f:
-            line = f.readline()
-            
-        if line == "dark":
-            theme = "equilux"
-        
-        elif line == "light":
-            theme = "yaru"
-            
-        else: # If file is tampered with
-            print("Please delete the file theme.txt and run the code again.")
-            exit()
+            theme = f.readline()
     
+    # First time use
     except FileNotFoundError:
-        darkMode = isDark() # Gets the users OS mode to be starter
+        darkMode = isDark()
         
         if darkMode == True:
             theme = "equilux"
-            
-            with open('theme.txt', 'w') as f:
-                f.write("dark")
         
         else:
             theme = "yaru"
-            
-            with open('theme.txt', 'w') as f:
-                f.write("light")
+        
+        with open('theme.txt', 'w') as f:
+            f.write(theme)
     
-    # Setup Tkinter window
-    root = Tk()
-    root.title("App")
-    style = ThemedStyle(root)
-    root.state('zoomed')
-    style.set_theme(theme)
+    # Run the app
+    try:
+        app = musicApp()
     
-    # Create frames
-    height = root.winfo_height()
-    width = root.winfo_width()
+    # If theme.txt has been altered externally
+    except TclError:
+        from termcolor import colored
+        print(colored("Please delete the file theme.txt and run the code again.", "red"))
+        exit()
     
-    homeFrame = ttk.Frame(root, height = height, width = width)
-    instrumentRolesFrame = ttk.Frame(root, height = height, width = width)
-    tutorialFrame = ttk.Frame(root, height = height, width = width)
-    testFrame = ttk.Frame(root, height = height, width = width)
-    flashCardsFrame = ttk.Frame(root, height = height, width = width)
-    songChoiceFrame = ttk.Frame(root, height = height, width = width)
-    musicPlayerFrame = ttk.Frame(root, height = height, width = width)
-    settingsFrame = ttk.Frame(root, height = height, width = width)
     createMenuBar()
-    home()
-
-    root.mainloop()
+    
+    app.mainloop()
