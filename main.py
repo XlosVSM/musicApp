@@ -16,18 +16,30 @@ class musicApp(Tk):
         style = ThemedStyle(self)
         self.state("zoomed")
         style.set_theme(theme)
+        createMenuBar()
         
         # Open on the starting page
         self._frame = None
         self.switchFrame(StartPage)
-    
-    def addMenu(self, menuName, commands):
-        menu = Menu(self.menuBar, tearoff = 0)
         
-        for command in commands:
-            menu.add_command(label = command[0], command = command[1])
+    def createMenuBar(self):
+        fileMenu = Menu(self, tearoff = False)
+        self.add_cascade(label="File",underline=0, menu=fileMenu)
+        fileMenu.add_command(label="New", command = self.donothing)
+        fileMenu.add_command(label = "Open", command = self.donothing)
+        fileMenu.add_command(label = "Save", command = self.donothing)
+        fileMenu.add_command(label = "Save as...", command = self.donothing)
+        fileMenu.add_command(label = "Close", command = self.donothing)
+        fileMenu.add_separator()
+        fileMenu.add_command(label = "Exit", command = self.quit)
+    
+    # def addMenu(self, menuName, commands):
+    #     menu = Menu(self.menuBar, tearoff = 0)
+        
+    #     for command in commands:
+    #         menu.add_command(label = command[0], command = command[1])
             
-        self.menuBar.add_cascade(label = menuName, menu = menu)
+    #     self.menuBar.add_cascade(label = menuName, menu = menu)
     
     def switchFrame(self, frameClass):
         newFrame = frameClass(self)
@@ -35,7 +47,7 @@ class musicApp(Tk):
             self._frame.destroy()
         self._frame = newFrame
         self._frame.pack()
-
+'''
 class MenuBar():
     def __init__(self, parent):
         self.menuBar = Menu(parent)
@@ -51,7 +63,7 @@ class MenuBar():
             menu.add_command(label = command[0], command = command[1])
             
         self.menuBar.add_cascade(label = menuName, menu = menu)
-
+'''
 class StartPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
@@ -109,7 +121,7 @@ if __name__ == "__main__":
         
         print(colored("Please delete the file theme.txt and run the code again.", "red"))
         exit()
-    
+    '''    
     menuBar = MenuBar(app)
     
     fileMenu = menuBar.addMenu(
@@ -159,5 +171,5 @@ if __name__ == "__main__":
         ("Settings", testPass, True)
         ]
     )
-
+    '''
     app.mainloop()
