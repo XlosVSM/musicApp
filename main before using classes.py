@@ -8,7 +8,7 @@ from ttkthemes import ThemedStyle
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stops pygame welcome message from showing
 from pygame import mixer # To play the individual stems simultaneously
-
+'''
 try:
     from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
 
@@ -18,7 +18,7 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
     print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
     exit()
-
+'''
 # Miscellaneous
 from darkdetect import isDark # Used for start up mode
 

@@ -4,6 +4,11 @@ from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
 
+# Music
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+from pygame import mixer
+
 # https://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/
 
 ##### Classes #####
@@ -14,7 +19,6 @@ class musicApp(Tk):
         # Style the code
         self.title("Music App")
         self.state("zoomed")
-        #self.style = ttk.Style(self)
         self.style = ThemedStyle(self)
         self.style.set_theme(appTheme)
         
@@ -31,6 +35,8 @@ class musicApp(Tk):
         self.menuBar.add_cascade(label = menuName, menu = menu)        
     
     def switchFrame(self, frameClass):
+        global musicStop
+        
         newFrame = frameClass(self)
         if self._frame is not None:
             self._frame.destroy()
@@ -51,6 +57,12 @@ class musicApp(Tk):
         
         with open('theme.txt', 'w') as i:
             i.write(theme)
+        
+        if appTheme == "equilux":
+            toggleButton['text'] = "Dark Mode"
+            
+        else:
+            toggleButton['text'] = "Light Mode"
 
 class MenuBar():
     def __init__(self, parent):
@@ -78,11 +90,19 @@ class StartPage(ttk.Frame):
         
 class SettingsPage(ttk.Frame):
     def __init__(self, master):
+        global toggleButton
         ttk.Frame.__init__(self, master)
         
         ttk.Label(self, text = "WE HERE NOW").pack()
         
-        toggleButton = ttk.Button(self, text = "Light Mode", width = 10, command = lambda: master.changeTheme(appTheme))
+        # Making sure that the button opens on the corresponding mode
+        if appTheme == "equilux":
+            modeText = "Dark Mode"
+            
+        else:
+            modeText = "Light Mode"
+        
+        toggleButton = ttk.Button(self, text = modeText, width = 10, command = lambda: master.changeTheme(theme = appTheme))
         toggleButton.pack()
         
         ttk.Button(self, text = "Home", command = lambda: master.switchFrame(StartPage)).pack()
@@ -108,21 +128,24 @@ def testPass():
 
 def createMenuBar():
     menuBar = MenuBar(app)
-       
-    instrumentRolesMenu = menuBar.addMenu(
+    
+    # Instrument roles cascade
+    menuBar.addMenu(
         "Instrument Roles", commands = [
             ("Rock Band", testPass, True)
         ],
     )
 
-    sightReadingMenu = menuBar.addMenu(
+    # Sight reading cascade
+    menuBar.addMenu(
         "Sight Reading", commands = [
             ("Tutorial", testPass, True),
             ("Test", testPass, True)
         ]
     )
     
-    intervalsMenu = menuBar.addMenu(
+    # Intervals cascade
+    menuBar.addMenu(
         "Intervals", commands = [
             ("Tutorial", testPass, True),
             ("Melodic", testPass, True),
@@ -130,7 +153,8 @@ def createMenuBar():
         ]
     )
     
-    chordsMenu = menuBar.addMenu(
+    # Chords cascade
+    menuBar.addMenu(
         "Chords", commands = [
             ("Tutorial", testPass, True),
             ("Chord Quality", testPass, True),
@@ -138,20 +162,23 @@ def createMenuBar():
         ]
     )
     
-    terminologyMenu = menuBar.addMenu(
+    # Terminology cascade
+    menuBar.addMenu(
         "Terminology", commands = [
             ("Tutorial", testPass, True),
             ("Flash Cards", testPass, True)
         ]
     )
     
-    instrumentPracticeMenu = menuBar.addMenu(
+    # Instrument practice cascade
+    menuBar.addMenu(
         "Instrument Practice", commands = [
-            ("Choose Song", testPass, True)
+            ("Choose Song", lambda: app.switchFrame(MusicPlayerPage), True)
         ]
     )
         
-    preferencesMenu = menuBar.addMenu(
+    # Preferences cascade
+    menuBar.addMenu(
         "Preferences", commands = [
             ("Settings", lambda: app.switchFrame(SettingsPage), True)
         ]

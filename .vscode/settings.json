@@ -3,6 +3,7 @@
         "colored",
         "darkdetect",
         "equilux",
+        "pygame",
         "tearoff",
         "termcolor",
         "ttkthemes",

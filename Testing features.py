@@ -23,23 +23,23 @@ mixer.set_num_channels(5)
 
 channel1 = mixer.Channel(0)
 channel1Sound = mixer.Sound("music/stems/TameImpala_Elephant/bass.wav")
-channel1.play(channel1Sound)
+#channel1.play(channel1Sound)
 
 channel2 = mixer.Channel(1)
 channel2Sound = mixer.Sound("music/stems/TameImpala_Elephant/drums.wav")
-channel2.play(channel2Sound)
+#channel2.play(channel2Sound)
 
 channel3 = mixer.Channel(2)
 channel3Sound = mixer.Sound("music/stems/TameImpala_Elephant/other.wav")
-channel3.play(channel3Sound)
+#channel3.play(channel3Sound)
 
 channel4 = mixer.Channel(3)
 channel4Sound = mixer.Sound("music/stems/TameImpala_Elephant/piano.wav")
-channel4.play(channel4Sound)
+#channel4.play(channel4Sound)
 
 channel5 = mixer.Channel(4)
 channel5Sound = mixer.Sound("music/stems/TameImpala_Elephant/vocals.wav")
-channel5.play(channel5Sound)
+#channel5.play(channel5Sound)
 
 # Setting up Tkinter window
 window = Tk()
