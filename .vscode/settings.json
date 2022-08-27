@@ -3,6 +3,7 @@
         "colored",
         "darkdetect",
         "equilux",
+        "pginit",
         "pygame",
         "tearoff",
         "termcolor",

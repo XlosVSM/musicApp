@@ -3,13 +3,12 @@
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
+from PIL import Image, ImageTk
 
 # Music
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
 from pygame import mixer
-
-# https://www.geeksforgeeks.org/tkinter-application-to-switch-between-different-page-frames/
 
 ##### Classes #####
 class musicApp(Tk):
@@ -35,7 +34,9 @@ class musicApp(Tk):
         self.menuBar.add_cascade(label = menuName, menu = menu)        
     
     def switchFrame(self, frameClass):
-        global musicStop
+        # Stop music from playing
+        for x in range(5):
+            mixer.Channel(x).stop()
         
         newFrame = frameClass(self)
         if self._frame is not None:
@@ -88,6 +89,55 @@ class StartPage(ttk.Frame):
         
         ttk.Button(self, text = "Settings", command = lambda: master.switchFrame(SettingsPage)).pack()
         
+        # Test adding picture
+        self.testImage = PhotoImage(file = "images/test.png")
+        ttk.Label(self, image = self.testImage).pack()
+        '''
+        self.images = {
+            "test": self.readyImg("test.png")
+        }
+        '''
+        
+    def readyImg(self, path):
+        return ImageTk.PhotoImage(Image.open("images/" + path))
+        
+        '''
+        image1 = Image.open("images/test.png")
+        img = ImageTk.PhotoImage(image1)
+        panel = Label(self, image = img)
+        panel.pack()
+        '''
+        
+class MusicPlayerPage(ttk.Frame):
+    def __init__(self, master):
+        global channel5, vocalsSlider
+        
+        ttk.Frame.__init__(self, master)
+        
+        channel1 = mixer.Channel(0)
+        channel1Sound = mixer.Sound("music/stems/TameImpala_Elephant/bass.wav")
+        channel1.play(channel1Sound)
+
+        channel2 = mixer.Channel(1)
+        channel2Sound = mixer.Sound("music/stems/TameImpala_Elephant/drums.wav")
+        channel2.play(channel2Sound)
+
+        channel3 = mixer.Channel(2)
+        channel3Sound = mixer.Sound("music/stems/TameImpala_Elephant/other.wav")
+        channel3.play(channel3Sound)
+
+        channel4 = mixer.Channel(3)
+        channel4Sound = mixer.Sound("music/stems/TameImpala_Elephant/piano.wav")
+        channel4.play(channel4Sound)
+
+        channel5 = mixer.Channel(4)
+        channel5Sound = mixer.Sound("music/stems/TameImpala_Elephant/vocals.wav")
+        channel5.play(channel5Sound)
+        
+        vocalsSlider = Scale(self, from_ = 100, to = 0, command = vocalVolume)
+        vocalsSlider.set(100)
+        vocalsSlider.pack()
+            
 class SettingsPage(ttk.Frame):
     def __init__(self, master):
         global toggleButton
@@ -184,16 +234,23 @@ def createMenuBar():
         ]
     )
 
+def vocalVolume(x):
+    volume = vocalsSlider.get()/100
+    channel5.set_volume(volume)
+
 ##### Main code #####    
 if __name__ == "__main__":
     # Try getting the user's preferred theme
     try:
-        with open('theme.txt') as f:
-            appTheme = f.readline()
+        with open('theme.txt') as i:
+            appTheme = i.readline()
     
     # First time use
     except FileNotFoundError:
         appTheme = firstTheme()
+    
+    mixer.pre_init(0, -16, 5, 512)
+    mixer.init()
     
     # Run the app
     try:
