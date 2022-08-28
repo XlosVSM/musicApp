@@ -90,6 +90,8 @@ canvas = Canvas(window, width= 500, height= 50, bg="SpringGreen2")
 canvas.create_text(250, 20, text="HELLO WORLD", fill="black", font=('Helvetica 15 bold'))
 canvas.pack()
 
+print(canvas.winfo_width())
+
 
 # Testing adding a button
 btn = Button(window, text = "Grade One", command = testPopUp, highlightbackground = "floral white")

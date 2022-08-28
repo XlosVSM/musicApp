@@ -3,6 +3,7 @@
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
+from PIL import Image, ImageTk
 
 # Music
 from os import environ
@@ -17,6 +18,7 @@ HEIGHT = 457
 ##### Classes #####
 class musicApp(Tk):
     def __init__(self):
+        global screenHeight, screenWidth
         Tk.__init__(self)
         
         # Style the code
@@ -88,38 +90,41 @@ class MenuBar():
 class StartPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
-        self.grid(sticky = N + S + E + W)
+        top = ttk.Frame(self)
+        top.pack(side = TOP)
         
-        top = self.winfo_toplevel()
-        top.rowconfigure(0, weight = 1)
-        top.columnconfigure(0, weight = 1)
+        print(top.winfo_height())
         
-        self.rowconfigure(1, weight = 1)
-        self.columnconfigure(0, weight = 1)
+        ttk.Label(self, text = "Music Learning App", font = ("Helvetica", 64)).pack(in_ = top)
         
-        self.grid_columnconfigure(2, weight = 1)
-        self.grid_rowconfigure(5, weight = 100)
+        # https://stackoverflow.com/questions/9927386/changing-ttk-button-height-in-python 
         
-        self.header = ttk.Label(self, text = "Music Learning App", font = ("Helvetica", 64))
-        self.header.grid(row = 0, columnspan = 5, sticky = E + W)
+        #ttk.Button(self, text = "Instrument Roles", command = testPass).pack(in_ = top, side = LEFT, padx = 100)
         
-        self.instrumentRoleButton = ttk.Button(self, text = "Instrument Roles")
-        self.instrumentRoleButton.grid(row = 1, column = 1, sticky = N + S + E + W)
+        # NEED TO WORK OUT HOW TO GET SIZE OF THE FRAME, DIVIDE IT BY FOUR, THEN I CAN PUT IN THE X VALUES
+        leftButtonX = 570 / 2
+        rightButtonX = 3 * 570 / 4
         
-        self.sightReadingButton = ttk.Button(self, text = "\n\n\n  Sight Reading  \n\n\n")
-        self.sightReadingButton.grid(row = 1, column = 2, sticky = N + S + W)
         
-        self.intervalsButton = ttk.Button(self, text = "Intervals")
-        self.intervalsButton.grid(row = 2, column = 1, sticky = N + S + E + W)
+        ttk.Button(self, text = "Instrument Roles", command = testPass).place(x = leftButtonX, y = 20)
         
-        self.chordsButton = ttk.Button(self, text = "\n\n\nChords\n\n\n")
-        self.chordsButton.grid(row = 2, column = 2, sticky = N + S + W)
+        ttk.Button(self, text = "Sight Reading", command = testPass).place(x = rightButtonX, y = 20)
         
-        self.terminologyButton = ttk.Button(self, text = "Terminology")
-        self.terminologyButton.grid(row = 3, column = 1, sticky = N + S + E + W)
+        ttk.Button(self, text = "Intervals", command = testPass).pack()
         
-        self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: master.switchFrame(MusicPlayerPage))
-        self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + W)
+        ttk.Button(self, text = "Chords", command = testPass).pack()
+        
+        ttk.Button(self, text = "Terminology", command = testPass).pack()
+        
+        ttk.Button(self, text = "Instrument Practice", command = lambda: master.switchFrame(MusicPlayerPage)).pack()
+        
+        ttk.Button(self, text = "Settings", command = lambda: master.switchFrame(SettingsPage)).pack()
+
+        # Test adding picture
+        self.testImage = PhotoImage(file = "images/test.png")
+        ttk.Label(self, image = self.testImage).pack()
+        
+        print(self.winfo_height())
         
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
@@ -185,8 +190,8 @@ def firstTheme():
         i.write(appTheme)
     
     return appTheme
-
-def menuPass():
+    
+def testPass():
     pass
 
 def createMenuBar():
@@ -195,41 +200,41 @@ def createMenuBar():
     # Instrument roles cascade
     menuBar.addMenu(
         "Instrument Roles", commands = [
-            ("Rock Band", menuPass, True)
+            ("Rock Band", testPass, True)
         ],
     )
 
     # Sight reading cascade
     menuBar.addMenu(
         "Sight Reading", commands = [
-            ("Tutorial", menuPass, True),
-            ("Test", menuPass, True)
+            ("Tutorial", testPass, True),
+            ("Test", testPass, True)
         ]
     )
     
     # Intervals cascade
     menuBar.addMenu(
         "Intervals", commands = [
-            ("Tutorial", menuPass, True),
-            ("Melodic", menuPass, True),
-            ("Harmonic", menuPass, True)
+            ("Tutorial", testPass, True),
+            ("Melodic", testPass, True),
+            ("Harmonic", testPass, True)
         ]
     )
     
     # Chords cascade
     menuBar.addMenu(
         "Chords", commands = [
-            ("Tutorial", menuPass, True),
-            ("Chord Quality", menuPass, True),
-            ("Cadences", menuPass, True),
+            ("Tutorial", testPass, True),
+            ("Chord Quality", testPass, True),
+            ("Cadences", testPass, True),
         ]
     )
     
     # Terminology cascade
     menuBar.addMenu(
         "Terminology", commands = [
-            ("Tutorial", menuPass, True),
-            ("Flash Cards", menuPass, True)
+            ("Tutorial", testPass, True),
+            ("Flash Cards", testPass, True)
         ]
     )
     
