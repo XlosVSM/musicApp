@@ -6,6 +6,7 @@
         "equilux",
         "pginit",
         "pygame",
+        "rowspan",
         "tearoff",
         "termcolor",
         "ttkthemes",

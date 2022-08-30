@@ -3,6 +3,7 @@
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
 from ttkthemes import ThemedStyle
+from PIL import Image, ImageTk
 
 # Music
 from os import environ
@@ -10,7 +11,7 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message p
 from pygame import mixer
 
 '''''''''
-WIDTH = 570
+WIDTH = 606
 HEIGHT = 457
 '''''''''
 
@@ -21,7 +22,7 @@ class musicApp(Tk):
         
         # Style the code
         self.title("Music App")
-        self.geometry("570x457")
+        self.geometry("606x457")
         self.style = ThemedStyle(self)
         self.style.set_theme(appTheme)
         
@@ -87,39 +88,57 @@ class MenuBar():
 
 class StartPage(ttk.Frame):
     def __init__(self, master):
+        global bassImg, trebleImg # Images must be global so they can be seen
+        
         ttk.Frame.__init__(self, master)
         self.grid(sticky = N + S + E + W)
         
-        top = self.winfo_toplevel()
-        top.rowconfigure(0, weight = 1)
-        top.columnconfigure(0, weight = 1)
-        
-        self.rowconfigure(1, weight = 1)
+        # Configure the grid's columns
         self.columnconfigure(0, weight = 1)
+        self.columnconfigure(4, weight = 1)
+        # self.grid_columnconfigure(0, weight = 7)
+        # self.grid_columnconfigure(2, weight = 1)
+        # self.grid_columnconfigure(3, weight = 4)
+        # self.grid_columnconfigure(4, weight = 3)
+        self.grid_columnconfigure(4, weight = 1)
         
-        self.grid_columnconfigure(2, weight = 1)
-        self.grid_rowconfigure(5, weight = 100)
+        # Configure the grid's rows
+        self.rowconfigure(1, weight = 1)
+        self.grid_rowconfigure(0, weight = 1)
+        self.grid_rowconfigure(1, weight = 0)
         
-        self.header = ttk.Label(self, text = "Music Learning App", font = ("Helvetica", 64))
+        self.header = ttk.Label(self, text = " Music Learning App ", font = ("Helvetica", 64))
         self.header.grid(row = 0, columnspan = 5, sticky = E + W)
+        
+        trebleImage = Image.open("images/trebleClef.png")
+        trebleImg = ImageTk.PhotoImage(trebleImage)
+        self.trebleImageLabel = Label(self, image = trebleImg)
+        self.trebleImageLabel.grid(rowspan = 4, column = 0)
         
         self.instrumentRoleButton = ttk.Button(self, text = "Instrument Roles")
         self.instrumentRoleButton.grid(row = 1, column = 1, sticky = N + S + E + W)
         
-        self.sightReadingButton = ttk.Button(self, text = "\n\n\n  Sight Reading  \n\n\n")
-        self.sightReadingButton.grid(row = 1, column = 2, sticky = N + S + W)
+        self.sightReadingButton = ttk.Button(self, text = "\n\n\n  Sight Reading \n\n\n")
+        self.sightReadingButton.grid(row = 1, column = 2, sticky = N + S + E + W)
         
         self.intervalsButton = ttk.Button(self, text = "Intervals")
         self.intervalsButton.grid(row = 2, column = 1, sticky = N + S + E + W)
         
         self.chordsButton = ttk.Button(self, text = "\n\n\nChords\n\n\n")
-        self.chordsButton.grid(row = 2, column = 2, sticky = N + S + W)
+        self.chordsButton.grid(row = 2, column = 2, sticky = N + S + E + W)
         
-        self.terminologyButton = ttk.Button(self, text = "Terminology")
+        self.terminologyButton = ttk.Button(self, text = "  Terminology   ")
         self.terminologyButton.grid(row = 3, column = 1, sticky = N + S + E + W)
         
         self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: master.switchFrame(MusicPlayerPage))
-        self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + W)
+        self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + E + W)
+        '''
+        bassImage = Image.open("images/bassClef.png")
+        bassImageResized = bassImage.resize((135,373))
+        bassImg = ImageTk.PhotoImage(bassImageResized)
+        self.bassImageLabel = Label(self, image = bassImg)
+        self.bassImageLabel.grid(rowspan = 4, column = 4)
+        '''
         
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
