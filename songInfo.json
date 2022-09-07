@@ -1,0 +1,23 @@
+[
+    {
+        "Artist": "The Beatles",
+        "Song Name": "Eight Days A Week",
+        "Album": "Beatles for Sale",
+        "Album Cover": "beatlesForSale.png",
+        "Folder": "Beatles_EightDaysAWeek"
+    },
+    {
+        "Artist": "Radiohead",
+        "Song Name": "Pyramid Song",
+        "Album": "Amnesiac",
+        "Album Cover": "amnesiac.png",
+        "Folder": "Radiohead_PyramidSong"
+    },
+    {
+        "Artist": "Tame Impala",
+        "Song Name": "Elephant",
+        "Album": "Lonerism",
+        "Album Cover": "lonerism.png",
+        "Folder": "TameImpala_Elephant"
+    }
+]

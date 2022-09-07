@@ -1,4 +1,4 @@
-##### Imports #####
+####### Imports #######
 # GUI Creation
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
@@ -10,27 +10,29 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
 from pygame import mixer
 
-'''''''''
-WIDTH = 606
-HEIGHT = 457
-'''''''''
+# Misc
+import pandas as pd
 
-##### Classes #####
+# https://www.geeksforgeeks.org/how-to-read-json-files-with-pandas/
+# https://stackoverflow.com/questions/39257147/convert-pandas-dataframe-to-json-format
+
+####### Classes #######
+# The core of the app.
 class musicApp(Tk):
     def __init__(self):
         Tk.__init__(self)
         
         # Style the code
         self.title("Music App")
-        self.geometry("606x457")
+        self.state("zoomed")
         self.style = ThemedStyle(self)
         self.style.set_theme(appTheme)
         
         # Open on the starting page
         self._frame = None
-        self.switchFrame(StartPage)
+        self.switchPage(StartPage)
     
-    def addMenu(self, menuName, commands):
+    def addMenuBar(self, menuName, commands): # Create the menu bar
         menu = Menu(self.menuBar, tearoff = 0)
         
         for command in commands:
@@ -38,7 +40,7 @@ class musicApp(Tk):
             
         self.menuBar.add_cascade(label = menuName, menu = menu)        
     
-    def switchFrame(self, frameClass):
+    def switchPage(self, frameClass): # Switch between pages
         # Stop music from playing
         for x in range(5):
             mixer.Channel(x).stop()
@@ -49,7 +51,7 @@ class musicApp(Tk):
         self._frame = newFrame
         self._frame.pack()
     
-    def changeTheme(self, theme):
+    def changeTheme(self, theme): # Change the program's theme when the button is clicked
         global appTheme
         
         if theme == "equilux":
@@ -70,6 +72,7 @@ class musicApp(Tk):
         else:
             toggleButton['text'] = "Light Mode"
 
+# The menu bar
 class MenuBar():
     def __init__(self, parent):
         self.menuBar = Menu(parent)
@@ -78,7 +81,7 @@ class MenuBar():
     def create(self):
         app.config(menu = self.menuBar)
         
-    def addMenu(self, menuName, commands):
+    def addMenuBar(self, menuName, commands):
         menu = Menu(self.menuBar, tearoff = 0)
         
         for command in commands:
@@ -86,9 +89,10 @@ class MenuBar():
             
         self.menuBar.add_cascade(label = menuName, menu = menu)
 
+# The opening page
 class StartPage(ttk.Frame):
     def __init__(self, master):
-        global bassImg, trebleImg # Images must be global so they can be seen
+        global trebleImg # Images must be global so they can be seen
         
         ttk.Frame.__init__(self, master)
         self.grid(sticky = N + S + E + W)
@@ -130,7 +134,7 @@ class StartPage(ttk.Frame):
         self.terminologyButton = ttk.Button(self, text = "  Terminology   ")
         self.terminologyButton.grid(row = 3, column = 1, sticky = N + S + E + W)
         
-        self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: master.switchFrame(MusicPlayerPage))
+        self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: app.switchPage(MusicSelectorPage))
         self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + E + W)
         '''
         bassImage = Image.open("images/bassClef.png")
@@ -139,37 +143,103 @@ class StartPage(ttk.Frame):
         self.bassImageLabel = Label(self, image = bassImg)
         self.bassImageLabel.grid(rowspan = 4, column = 4)
         '''
+
+class MusicSelectorPage(ttk.Frame):
+    def __init__(self, master):
+        ttk.Frame.__init__(self, master)
         
+        songNames = []
+        vals = df.values
+        vals = vals.tolist()
+        
+        songName = df.loc[:, "Song Name"]
+        songNameList = songName.tolist()
+        
+        songName = 0
+        songChoice = 0
+        
+        while testX <= dfRange - 1:
+            ttk.Button(self, text = songNameList[testX], command = lambda: self.playSong(songChoice)).pack()
+            
+            testX = testX + 1
+            songChoice = songChoice + 1
+        
+        '''
+        ttk.Button(self, text = "Eight Days A Week", command = lambda: self.playSong(0)).pack()
+        ttk.Button(self, text = "Pyramid Song", command = lambda: self.playSong(1)).pack()
+        ttk.Button(self, text = "Elephant", command = lambda: self.playSong(2)).pack()
+        '''
+        
+    def playSong(self, chosenSong):
+        global songFile
+        
+        folders = df.loc[:, "Folder"]
+        folderList = folders.tolist()
+        #print(folderList)
+        
+        
+        if chosenSong == 0:
+            songFile = folderList[0]
+        
+        elif chosenSong == 1:
+            songFile = folderList[1]
+        
+        else:
+            songFile = folderList[2]
+        
+        app.switchPage(MusicPlayerPage)
+
+# The music player 
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
-        global channel5, vocalsSlider
+        # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
+        global albumCoverImg, channel5, vocalsSlider
         
         ttk.Frame.__init__(self, master)
         
+        # Create the song information
+        albumCover = Image.open("images/albumCovers/amnesiac.png")
+        albumCoverImg = ImageTk.PhotoImage(albumCover)
+        self.albumCoverLabel = Label(self, image = albumCoverImg)
+        self.albumCoverLabel.grid(rowspan = 3, columnspan = 3)
+        
+        songName = ttk.Label(self, text = "Title: Pyramid Song", font = ("Helvetica", 20))
+        songName.grid(row = 0, column = 4)
+        
+        artistName = ttk.Label(self, text = "Artist: Radiohead", font = ("Helvetica", 20))
+        artistName.grid(row = 1, column = 4)
+        
+        albumName = ttk.Label(self, text = "Album: Amnesiac", font = ("Helvetica", 20))
+        albumName.grid(row = 2, column = 4)
+        
+        # Play the song
+        file = "music/stems/" + songFile
+        
         channel1 = mixer.Channel(0)
-        channel1Sound = mixer.Sound("music/stems/TameImpala_Elephant/bass.wav")
+        channel1Sound = mixer.Sound(file + "/bass.wav")
         channel1.play(channel1Sound)
 
         channel2 = mixer.Channel(1)
-        channel2Sound = mixer.Sound("music/stems/TameImpala_Elephant/drums.wav")
+        channel2Sound = mixer.Sound(file + "/drums.wav")
         channel2.play(channel2Sound)
 
         channel3 = mixer.Channel(2)
-        channel3Sound = mixer.Sound("music/stems/TameImpala_Elephant/other.wav")
+        channel3Sound = mixer.Sound(file + "/other.wav")
         channel3.play(channel3Sound)
 
         channel4 = mixer.Channel(3)
-        channel4Sound = mixer.Sound("music/stems/TameImpala_Elephant/piano.wav")
+        channel4Sound = mixer.Sound(file + "/piano.wav")
         channel4.play(channel4Sound)
 
         channel5 = mixer.Channel(4)
-        channel5Sound = mixer.Sound("music/stems/TameImpala_Elephant/vocals.wav")
+        channel5Sound = mixer.Sound(file + "/vocals.wav")
         channel5.play(channel5Sound)
         
         vocalsSlider = Scale(self, from_ = 100, to = 0, command = vocalVolume)
         vocalsSlider.set(100)
-        vocalsSlider.pack()
-            
+        vocalsSlider.grid(row = 4)
+
+# The settings page       
 class SettingsPage(ttk.Frame):
     def __init__(self, master):
         global toggleButton
@@ -187,10 +257,10 @@ class SettingsPage(ttk.Frame):
         toggleButton = ttk.Button(self, text = modeText, width = 10, command = lambda: master.changeTheme(theme = appTheme))
         toggleButton.pack()
         
-        ttk.Button(self, text = "Home", command = lambda: master.switchFrame(StartPage)).pack()
+        ttk.Button(self, text = "Home", command = lambda: master.switchPage(StartPage)).pack()
         
-##### Definitions ######      
-def firstTheme():
+####### Definitions ########      
+def firstTheme(): 
     from darkdetect import isDark
     
     if isDark() == True:
@@ -205,6 +275,7 @@ def firstTheme():
     
     return appTheme
 
+# A blank pass temporarily for the menu bar since pages are not ready
 def menuPass():
     pass
 
@@ -212,14 +283,14 @@ def createMenuBar():
     menuBar = MenuBar(app)
     
     # Instrument roles cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Instrument Roles", commands = [
             ("Rock Band", menuPass, True)
         ],
     )
 
     # Sight reading cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Sight Reading", commands = [
             ("Tutorial", menuPass, True),
             ("Test", menuPass, True)
@@ -227,7 +298,7 @@ def createMenuBar():
     )
     
     # Intervals cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Intervals", commands = [
             ("Tutorial", menuPass, True),
             ("Melodic", menuPass, True),
@@ -236,7 +307,7 @@ def createMenuBar():
     )
     
     # Chords cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Chords", commands = [
             ("Tutorial", menuPass, True),
             ("Chord Quality", menuPass, True),
@@ -245,7 +316,7 @@ def createMenuBar():
     )
     
     # Terminology cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Terminology", commands = [
             ("Tutorial", menuPass, True),
             ("Flash Cards", menuPass, True)
@@ -253,24 +324,24 @@ def createMenuBar():
     )
     
     # Instrument practice cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Instrument Practice", commands = [
-            ("Choose Song", lambda: app.switchFrame(MusicPlayerPage), True)
+            ("Choose Song", lambda: app.switchPage(MusicSelectorPage), True)
         ]
     )
         
     # Preferences cascade
-    menuBar.addMenu(
+    menuBar.addMenuBar(
         "Preferences", commands = [
-            ("Settings", lambda: app.switchFrame(SettingsPage), True)
+            ("Settings", lambda: app.switchPage(SettingsPage), True)
         ]
     )
 
-def vocalVolume(x):
-    volume = vocalsSlider.get()/100
+def vocalVolume(x): # Making the sliders change their corresponding mixer channel's volume
+    volume = vocalsSlider.get() / 100
     channel5.set_volume(volume)
 
-##### Main code #####    
+####### Main code #######    
 if __name__ == "__main__":
     # Try getting the user's preferred theme
     try:
@@ -283,6 +354,10 @@ if __name__ == "__main__":
     
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
+    
+    # Get the song data
+    df = pd.read_json("songInfo.json")
+    dfRange = len(df)
     
     # Run the app
     try:
