@@ -2,7 +2,7 @@
 # GUI Creation
 from tkinter import *
 from tkinter import ttk # So I can use themed widgets
-from ttkthemes import ThemedStyle
+from ttkthemes import ThemedStyle # Gives access to amazing Tkinter ttk themes without having to spend time designing my own one
 from PIL import Image, ImageTk
 
 # Music
@@ -10,11 +10,8 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
 from pygame import mixer
 
-# Misc
-import pandas as pd
-
-# https://www.geeksforgeeks.org/how-to-read-json-files-with-pandas/
-# https://stackoverflow.com/questions/39257147/convert-pandas-dataframe-to-json-format
+# Misc (termcolor is only imported when there is an error)
+from pandas import read_json
 
 ####### Classes #######
 # The core of the app.
@@ -46,8 +43,10 @@ class musicApp(Tk):
             mixer.Channel(x).stop()
         
         newFrame = frameClass(self)
+        
         if self._frame is not None:
             self._frame.destroy()
+            
         self._frame = newFrame
         self._frame.pack()
     
@@ -100,10 +99,6 @@ class StartPage(ttk.Frame):
         # Configure the grid's columns
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(4, weight = 1)
-        # self.grid_columnconfigure(0, weight = 7)
-        # self.grid_columnconfigure(2, weight = 1)
-        # self.grid_columnconfigure(3, weight = 4)
-        # self.grid_columnconfigure(4, weight = 3)
         self.grid_columnconfigure(4, weight = 1)
         
         # Configure the grid's rows
@@ -148,44 +143,17 @@ class MusicSelectorPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
-        songNames = []
-        vals = df.values
-        vals = vals.tolist()
-        
-        songName = df.loc[:, "Song Name"]
-        songNameList = songName.tolist()
-        
-        songName = 0
-        songChoice = 0
-        
-        while testX <= dfRange - 1:
-            ttk.Button(self, text = songNameList[testX], command = lambda: self.playSong(songChoice)).pack()
-            
-            testX = testX + 1
-            songChoice = songChoice + 1
-        
-        '''
-        ttk.Button(self, text = "Eight Days A Week", command = lambda: self.playSong(0)).pack()
-        ttk.Button(self, text = "Pyramid Song", command = lambda: self.playSong(1)).pack()
-        ttk.Button(self, text = "Elephant", command = lambda: self.playSong(2)).pack()
-        '''
+        for song in range(dfRange):
+            ttk.Button(self, text = songNameList[song], command = lambda i=song: self.playSong(i)).pack()
         
     def playSong(self, chosenSong):
-        global songFile
+        global selectedSong, songFile
         
         folders = df.loc[:, "Folder"]
         folderList = folders.tolist()
-        #print(folderList)
         
-        
-        if chosenSong == 0:
-            songFile = folderList[0]
-        
-        elif chosenSong == 1:
-            songFile = folderList[1]
-        
-        else:
-            songFile = folderList[2]
+        songFile = folderList[chosenSong]
+        selectedSong = chosenSong
         
         app.switchPage(MusicPlayerPage)
 
@@ -197,19 +165,25 @@ class MusicPlayerPage(ttk.Frame):
         
         ttk.Frame.__init__(self, master)
         
+        # Call the corresponding song data
+        chosenSongTitle = songNameList[selectedSong]
+        chosenSongArtist = songArtistList[selectedSong]
+        chosenSongAlbum = songAlbumList[selectedSong]
+        albumFile = albumCoverList[selectedSong]
+        
         # Create the song information
-        albumCover = Image.open("images/albumCovers/amnesiac.png")
+        albumCover = Image.open("images/albumCovers/" + albumFile)
         albumCoverImg = ImageTk.PhotoImage(albumCover)
         self.albumCoverLabel = Label(self, image = albumCoverImg)
         self.albumCoverLabel.grid(rowspan = 3, columnspan = 3)
         
-        songName = ttk.Label(self, text = "Title: Pyramid Song", font = ("Helvetica", 20))
+        songName = ttk.Label(self, text = "Title: " + chosenSongTitle, font = ("Helvetica", 20))
         songName.grid(row = 0, column = 4)
         
-        artistName = ttk.Label(self, text = "Artist: Radiohead", font = ("Helvetica", 20))
+        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist, font = ("Helvetica", 20))
         artistName.grid(row = 1, column = 4)
         
-        albumName = ttk.Label(self, text = "Album: Amnesiac", font = ("Helvetica", 20))
+        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum, font = ("Helvetica", 20))
         albumName.grid(row = 2, column = 4)
         
         # Play the song
@@ -275,7 +249,7 @@ def firstTheme():
     
     return appTheme
 
-# A blank pass temporarily for the menu bar since pages are not ready
+# A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted
 def menuPass():
     pass
 
@@ -356,8 +330,21 @@ if __name__ == "__main__":
     mixer.init()
     
     # Get the song data
-    df = pd.read_json("songInfo.json")
+    df = read_json("songInfo.json")
     dfRange = len(df)
+    
+    # Create lists of the data from the JSON file to speed up the program
+    songName = df.loc[:, "Song Name"]
+    songNameList = songName.tolist()
+    
+    songArtist = df.loc[:, "Artist"]
+    songArtistList = songArtist.tolist()
+    
+    songAlbum = df.loc[:, "Album"]
+    songAlbumList = songAlbum.tolist()
+    
+    albumCover = df.loc[:, "Album Cover"]
+    albumCoverList = albumCover.tolist()
     
     # Run the app
     try:
