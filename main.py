@@ -9,9 +9,23 @@ from PIL import Image, ImageTk
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
 from pygame import mixer
+from mutagen.wave import WAVE
+try:
+    from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
+
+except ModuleNotFoundError: # This helps users have a better understanding on how to get the package to work
+    from termcolor import colored
+    
+    link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
+    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
+    exit()
 
 # Misc (termcolor is only imported when there is an error)
 from pandas import read_json
+from random import choice
+from os import listdir
+
+# https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
 ####### Classes #######
 # The core of the app.
@@ -131,14 +145,19 @@ class StartPage(ttk.Frame):
         
         self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: app.switchPage(MusicSelectorPage))
         self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + E + W)
-        '''
-        bassImage = Image.open("images/bassClef.png")
-        bassImageResized = bassImage.resize((135,373))
-        bassImg = ImageTk.PhotoImage(bassImageResized)
-        self.bassImageLabel = Label(self, image = bassImg)
-        self.bassImageLabel.grid(rowspan = 4, column = 4)
-        '''
 
+# Harmonic intervals test
+class HarmonicIntervalsTest(ttk.Frame):
+    def __init__(self, master):
+        ttk.Frame.__init__(self, master)
+        
+        player = Player(volume = 0.3, mute_output = False)
+        
+        imageFolder = choice(listdir("images/intervals/harmonic"))
+        print(imageFolder)
+        testImage = choice(listdir("images/intervals/harmonic/P5"))
+
+# List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
@@ -161,7 +180,7 @@ class MusicSelectorPage(ttk.Frame):
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
         # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
-        global albumCoverImg, channel5, vocalsSlider
+        global albumCoverImg
         
         ttk.Frame.__init__(self, master)
         
@@ -187,32 +206,71 @@ class MusicPlayerPage(ttk.Frame):
         albumName.grid(row = 2, column = 4)
         
         # Play the song
-        file = "music/stems/" + songFile
+        self.file = "music/stems/" + songFile
         
-        channel1 = mixer.Channel(0)
-        channel1Sound = mixer.Sound(file + "/bass.wav")
-        channel1.play(channel1Sound)
+        self.channel1 = mixer.Channel(0)
+        channel1Sound = mixer.Sound(self.file + "/bass.wav")
+        self.channel1.play(channel1Sound)
 
-        channel2 = mixer.Channel(1)
-        channel2Sound = mixer.Sound(file + "/drums.wav")
-        channel2.play(channel2Sound)
+        self.channel2 = mixer.Channel(1)
+        channel2Sound = mixer.Sound(self.file + "/drums.wav")
+        self.channel2.play(channel2Sound)
 
-        channel3 = mixer.Channel(2)
-        channel3Sound = mixer.Sound(file + "/other.wav")
-        channel3.play(channel3Sound)
+        self.channel3 = mixer.Channel(2)
+        channel3Sound = mixer.Sound(self.file + "/other.wav")
+        self.channel3.play(channel3Sound)
 
-        channel4 = mixer.Channel(3)
-        channel4Sound = mixer.Sound(file + "/piano.wav")
-        channel4.play(channel4Sound)
+        self.channel4 = mixer.Channel(3)
+        channel4Sound = mixer.Sound(self.file + "/piano.wav")
+        self.channel4.play(channel4Sound)
 
-        channel5 = mixer.Channel(4)
-        channel5Sound = mixer.Sound(file + "/vocals.wav")
-        channel5.play(channel5Sound)
+        self.channel5 = mixer.Channel(4)
+        channel5Sound = mixer.Sound(self.file + "/vocals.wav")
+        self.channel5.play(channel5Sound)
         
-        vocalsSlider = Scale(self, from_ = 100, to = 0, command = vocalVolume)
-        vocalsSlider.set(100)
-        vocalsSlider.grid(row = 4)
-
+        # Add the progress bar
+        song = WAVE(self.file + "/bass.wav") # Any of the files would work
+        songDuration = song.info.length
+        
+        self.progressBar = ttk.Scale(self, from_ = 0, to = songDuration, orient = HORIZONTAL, length = 520)
+        
+        self.progressBar.bind("<ButtonRelease-1>", self.updateValue)
+        self.progressBar.set(0)
+        self.progressBar.grid(row = 4, columnspan = 5)
+        
+        # Create the volume sliders for the mixer tracks
+        self.bassSlider = Scale(self, from_ = 100, to = 0, command = self.bassVolume)
+        if appTheme == "equilux":
+            self.bassSlider.config(bg = "gray33", activebackground="gray33")
+            
+        else:
+            self.bassSlider.config(bg = "white", activebackground = "white", fg = "black")
+        
+        self.bassSlider.set(100)
+        self.bassSlider.grid(row = 5)
+        
+        self.vocalsSlider = Scale(self, from_ = 100, to = 0, command = self.vocalVolume)
+        if appTheme == "equilux":
+            self.vocalsSlider.config(bg = "gray33", activebackground="gray33")
+            
+        else:
+            self.vocalsSlider.config(bg = "white", activebackground = "white", fg = "black")
+        
+        self.vocalsSlider.set(100)
+        self.vocalsSlider.grid(row = 5)
+    
+    def updateValue(self, event):
+        channel4Sound = mixer.Sound(self.file + "/piano.wav")
+        self.channel4.play(channel4Sound)
+    
+    def bassVolume(self, x):
+        volume = self.bassSlider.get() / 100
+        self.channel4.set_volume(volume)
+       
+    def vocalVolume(self, x): # Making the sliders change their corresponding mixer channel's volume
+        volume = self.vocalsSlider.get() / 100
+        self.channel5.set_volume(volume)
+        
 # The settings page       
 class SettingsPage(ttk.Frame):
     def __init__(self, master):
@@ -275,8 +333,8 @@ def createMenuBar():
     menuBar.addMenuBar(
         "Intervals", commands = [
             ("Tutorial", menuPass, True),
-            ("Melodic", menuPass, True),
-            ("Harmonic", menuPass, True)
+            ("Harmonic", lambda: app.switchPage(HarmonicIntervalsTest), True),
+            ("Melodic", menuPass, True)
         ]
     )
     
@@ -310,10 +368,6 @@ def createMenuBar():
             ("Settings", lambda: app.switchPage(SettingsPage), True)
         ]
     )
-
-def vocalVolume(x): # Making the sliders change their corresponding mixer channel's volume
-    volume = vocalsSlider.get() / 100
-    channel5.set_volume(volume)
 
 ####### Main code #######    
 if __name__ == "__main__":
@@ -351,9 +405,9 @@ if __name__ == "__main__":
         app = musicApp()
     
     # If theme.txt has been altered externally
-    except TclError:
+    except TclError:  
         from termcolor import colored
-        
+              
         print(colored("Please delete the file theme.txt and run the code again.", "red"))
         exit()
     
