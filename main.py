@@ -17,7 +17,7 @@ except ModuleNotFoundError: # This helps users have a better understanding on ho
     from termcolor import colored
     
     link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
-    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. \nDownload "Microsoft C++ Build Tools" from ' + link + ' to get it.Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
+    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. Download "Microsoft C++ Build Tools" from ' + link + ' to get it. Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
     exit()
 
 # Misc (termcolor is only imported when there is an error)
@@ -63,7 +63,7 @@ class musicApp(Tk):
             
         self._frame = newFrame
         self._frame.pack()
-    
+
     def changeTheme(self, theme): # Change the program's theme when the button is clicked
         global appTheme
         
@@ -292,7 +292,7 @@ class SettingsPage(ttk.Frame):
         ttk.Button(self, text = "Home", command = lambda: master.switchPage(StartPage)).pack()
         
 ####### Definitions ########      
-def firstTheme(): 
+def createThemeFile(): 
     from darkdetect import isDark
     
     if isDark() == True:
@@ -376,9 +376,9 @@ if __name__ == "__main__":
         with open('theme.txt') as i:
             appTheme = i.readline()
     
-    # First time use
+    # First time use or missing theme.txt
     except FileNotFoundError:
-        appTheme = firstTheme()
+        appTheme = createThemeFile()
     
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
