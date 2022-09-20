@@ -149,13 +149,15 @@ class StartPage(ttk.Frame):
 # Harmonic intervals test
 class HarmonicIntervalsTest(ttk.Frame):
     def __init__(self, master):
+        global intervalImage
+        
         ttk.Frame.__init__(self, master)
         
         player = Player(volume = 0.3, mute_output = False)
         
         imageFolder = choice(listdir("images/intervals/harmonic"))
         print(imageFolder)
-        testImage = choice(listdir("images/intervals/harmonic/P5"))
+        intervalImage = choice(listdir("images/intervals/harmonic/P5"))
 
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
