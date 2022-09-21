@@ -198,13 +198,13 @@ class MusicPlayerPage(ttk.Frame):
         self.albumCoverLabel = Label(self, image = albumCoverImg)
         self.albumCoverLabel.grid(rowspan = 3, columnspan = 3)
         
-        songName = ttk.Label(self, text = "Title: " + chosenSongTitle, font = ("Helvetica", 20))
+        songName = ttk.Label(self, text = "Title: " + chosenSongTitle + " ", font = ("Helvetica", 20))
         songName.grid(row = 0, column = 4)
         
-        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist, font = ("Helvetica", 20))
+        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist + " ", font = ("Helvetica", 20))
         artistName.grid(row = 1, column = 4)
         
-        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum, font = ("Helvetica", 20))
+        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum + " ", font = ("Helvetica", 20))
         albumName.grid(row = 2, column = 4)
         
         # Play the song
@@ -241,6 +241,7 @@ class MusicPlayerPage(ttk.Frame):
         self.progressBar.grid(row = 4, columnspan = 5)
         
         # Create the volume sliders for the mixer tracks
+        # Bass slider
         self.bassSlider = Scale(self, from_ = 100, to = 0, command = self.bassVolume)
         if appTheme == "equilux":
             self.bassSlider.config(bg = "gray33", activebackground="gray33")
@@ -249,8 +250,42 @@ class MusicPlayerPage(ttk.Frame):
             self.bassSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.bassSlider.set(100)
-        self.bassSlider.grid(row = 5)
+        self.bassSlider.grid(row = 5, column = 0)
         
+        # Drums slider
+        self.drumsSlider = Scale(self, from_ = 100, to = 0, command = self.drumsVolume)
+        if appTheme == "equilux":
+            self.drumsSlider.config(bg = "gray33", activebackground="gray33")
+            
+        else:
+            self.drumsSlider.config(bg = "white", activebackground = "white", fg = "black")
+        
+        self.drumsSlider.set(100)
+        self.drumsSlider.grid(row = 5, column = 1)
+        
+        # Other slider
+        self.otherSlider = Scale(self, from_ = 100, to = 0, command = self.otherVolume)
+        if appTheme == "equilux":
+            self.otherSlider.config(bg = "gray33", activebackground="gray33")
+            
+        else:
+            self.otherSlider.config(bg = "white", activebackground = "white", fg = "black")
+        
+        self.otherSlider.set(100)
+        self.otherSlider.grid(row = 5, column = 2)
+        
+        # Piano slider
+        self.pianoSlider = Scale(self, from_ = 100, to = 0, command = self.pianoVolume)
+        if appTheme == "equilux":
+            self.pianoSlider.config(bg = "gray33", activebackground="gray33")
+            
+        else:
+            self.pianoSlider.config(bg = "white", activebackground = "white", fg = "black")
+        
+        self.pianoSlider.set(100)
+        self.pianoSlider.grid(row = 5, column = 3)
+        
+        # Vocals slider
         self.vocalsSlider = Scale(self, from_ = 100, to = 0, command = self.vocalVolume)
         if appTheme == "equilux":
             self.vocalsSlider.config(bg = "gray33", activebackground="gray33")
@@ -259,7 +294,7 @@ class MusicPlayerPage(ttk.Frame):
             self.vocalsSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.vocalsSlider.set(100)
-        self.vocalsSlider.grid(row = 5)
+        self.vocalsSlider.grid(row = 5, column = 4)
     
     def updateValue(self, event):
         channel4Sound = mixer.Sound(self.file + "/piano.wav")
@@ -267,6 +302,18 @@ class MusicPlayerPage(ttk.Frame):
     
     def bassVolume(self, x):
         volume = self.bassSlider.get() / 100
+        self.channel1.set_volume(volume)
+        
+    def drumsVolume(self, x):
+        volume = self.drumsSlider.get() / 100
+        self.channel2.set_volume(volume)
+       
+    def otherVolume(self, x):
+        volume = self.otherSlider.get() / 100
+        self.channel3.set_volume(volume)
+        
+    def pianoVolume(self, x):
+        volume = self.pianoSlider.get() / 100
         self.channel4.set_volume(volume)
        
     def vocalVolume(self, x): # Making the sliders change their corresponding mixer channel's volume
