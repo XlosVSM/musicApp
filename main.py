@@ -10,20 +10,11 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
 from pygame import mixer
 from mutagen.wave import WAVE
-try:
-    from musicalbeeps import Player # To play to notes in test # https://pypi.org/projexct/musicalbeeps/
-
-except ModuleNotFoundError: # This helps users have a better understanding on how to get the package to work
-    from termcolor import colored
-    
-    link = colored("https://visualstudio.microsoft.com/visual-cpp-build-tools/", "blue")
-    print('This program requires the module musicalbeeps. This package does require Microsoft Visual C++ 14.0 or greater. Download "Microsoft C++ Build Tools" from ' + link + ' to get it. Select "Desktop development with C++" to ensure you install everything needed. Do this before doing pip install musicalbeeps. If you are using a Mac, you will not need to install this.')
-    exit()
 
 # Misc (termcolor is only imported when there is an error)
 from pandas import read_json
 from random import choice
-from os import listdir
+from os import listdir, remove
 
 # https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
@@ -31,13 +22,22 @@ from os import listdir
 # The core of the app.
 class musicApp(Tk):
     def __init__(self):
+        global appTheme
+        
         Tk.__init__(self)
         
         # Style the code
         self.title("Music App")
         self.state("zoomed")
         self.style = ThemedStyle(self)
-        self.style.set_theme(appTheme)
+        try:
+            self.style.set_theme(appTheme)
+        
+        # If theme.txt is tampered with, it will delete the file and rewrite it
+        except TclError:
+            remove("theme.txt")
+            appTheme = createThemeFile()
+            self.style.set_theme(appTheme)
         
         # Open on the starting page
         self._frame = None
@@ -149,15 +149,18 @@ class StartPage(ttk.Frame):
 # Harmonic intervals test
 class HarmonicIntervalsTest(ttk.Frame):
     def __init__(self, master):
-        global intervalImage
+        global intervalImg
         
         ttk.Frame.__init__(self, master)
         
-        player = Player(volume = 0.3, mute_output = False)
-        
         imageFolder = choice(listdir("images/intervals/harmonic"))
         print(imageFolder)
-        intervalImage = choice(listdir("images/intervals/harmonic/P5"))
+        testImage = choice(listdir("images/intervals/harmonic/P5"))
+        
+        intervalImage = Image.open("images/intervals/harmonic/P5/" + testImage)
+        intervalImg = ImageTk.PhotoImage(intervalImage)
+        self.intervalImageInterval = Label(self, image = intervalImg)
+        self.intervalImageInterval.pack()
 
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
@@ -450,16 +453,8 @@ if __name__ == "__main__":
     albumCoverList = albumCover.tolist()
     
     # Run the app
-    try:
-        app = musicApp()
-    
-    # If theme.txt has been altered externally
-    except TclError:  
-        from termcolor import colored
-              
-        print(colored("Please delete the file theme.txt and run the code again.", "red"))
-        exit()
-    
+    app = musicApp()
+        
     createMenuBar()
     
     app.mainloop()
