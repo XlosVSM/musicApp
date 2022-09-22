@@ -156,22 +156,44 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         ttk.Frame.__init__(self, master)
         
-        imageFolder = choice(listdir("images/intervals/harmonic"))
-        print(imageFolder)
-        testImage = choice(listdir("images/intervals/harmonic/P5"))
+        self.imageFolderOptions = listdir("images/intervals/harmonic")
+        self.imageFolderOptions.remove('.DS_Store')
+        self.imageFolder = choice(self.imageFolderOptions)
         
-        intervalImage = Image.open("images/intervals/harmonic/P5/" + testImage)
+        self.imagePitchOptions = listdir("images/intervals/harmonic/" + self.imageFolder)
+        self.testImage = choice(self.imagePitchOptions)        
+        
+        intervalImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         intervalImg = ImageTk.PhotoImage(intervalImage)
         self.intervalImageInterval = Label(self, image = intervalImg)
         self.intervalImageInterval.pack()
+        
+        self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+        
+        self.p5Button = ttk.Button(self, text = "P5", command = self.buttonClicked)
+        self.p5Button.pack()
+    
+    def buttonClicked(self):
+        global newImg
+        
+        newImageFolder = choice(self.imageFolderOptions)
+        newImageFile = choice(self.imagePitchOptions)
+        
+        newImage = Image.open("images/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
+        newImg = ImageTk.PhotoImage(newImage)
+        self.intervalImageInterval.configure(image = newImg)
+        
+        self.playMIDI("music/midi/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
     
     def playMIDI(self, midiFile):
         clock = time.Clock()
         
-        mixer.music.load(midiFile)
+        musicFile = midiFile.replace('.png', '.mid')
+        
+        mixer.music.load(musicFile)
         mixer.music.play()
         while mixer.music.get_busy():
-            clock.tick(5)
+            clock.tick(2)
 
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
@@ -330,7 +352,7 @@ class MusicPlayerPage(ttk.Frame):
         volume = self.pianoSlider.get() / 100
         self.channel4.set_volume(volume)
        
-    def vocalVolume(self, x): # Making the sliders change their corresponding mixer channel's volume
+    def vocalVolume(self, x):  # Making the sliders change their corresponding mixer channel's volume
         volume = self.vocalsSlider.get() / 100
         self.channel5.set_volume(volume)
         
@@ -338,9 +360,8 @@ class MusicPlayerPage(ttk.Frame):
 class SettingsPage(ttk.Frame):
     def __init__(self, master):
         global toggleButton
-        ttk.Frame.__init__(self, master)
         
-        ttk.Label(self, text = "WE HERE NOW").pack()
+        ttk.Frame.__init__(self, master)
         
         # Making sure that the button opens on the corresponding mode
         if appTheme == "equilux":
@@ -349,10 +370,8 @@ class SettingsPage(ttk.Frame):
         else:
             modeText = "Light Mode"
         
-        toggleButton = ttk.Button(self, text = modeText, width = 10, command = lambda: master.changeTheme(theme = appTheme))
+        toggleButton = ttk.Button(self, text = modeText, width = 10, command = lambda: master.changeTheme(theme = appTheme))  # Change to a checkbox
         toggleButton.pack()
-        
-        ttk.Button(self, text = "Home", command = lambda: master.switchPage(StartPage)).pack()
         
 ###############
 # Definitions #
