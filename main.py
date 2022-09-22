@@ -17,7 +17,6 @@ from mutagen.wave import WAVE
 from pandas import read_json
 from random import choice
 from os import listdir, remove
-from pygame import time
 
 # https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
@@ -81,13 +80,7 @@ class musicApp(Tk):
         
         with open('theme.txt', 'w') as i:
             i.write(theme)
-        
-        if appTheme == "equilux":
-            toggleButton['text'] = "Dark Mode"
             
-        else:
-            toggleButton['text'] = "Light Mode"
-
 # The menu bar
 class MenuBar():
     def __init__(self, parent):
@@ -157,7 +150,13 @@ class HarmonicIntervalsTest(ttk.Frame):
         ttk.Frame.__init__(self, master)
         
         self.imageFolderOptions = listdir("images/intervals/harmonic")
-        self.imageFolderOptions.remove('.DS_Store')
+        # Get rid of the .DS_Store file as it crashes code
+        try:
+            self.imageFolderOptions.remove('.DS_Store')
+        
+        except ValueError:
+            pass
+        
         self.imageFolder = choice(self.imageFolderOptions)
         
         self.imagePitchOptions = listdir("images/intervals/harmonic/" + self.imageFolder)
@@ -172,6 +171,9 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         self.p5Button = ttk.Button(self, text = "P5", command = self.buttonClicked)
         self.p5Button.pack()
+        
+        self.octaveButton = ttk.Button(self, text = "Octave", command = self.buttonClicked)
+        self.octaveButton.pack()
     
     def buttonClicked(self):
         global newImg
@@ -185,15 +187,11 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         self.playMIDI("music/midi/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
     
-    def playMIDI(self, midiFile):
-        clock = time.Clock()
-        
+    def playMIDI(self, midiFile):       
         musicFile = midiFile.replace('.png', '.mid')
         
         mixer.music.load(musicFile)
         mixer.music.play()
-        while mixer.music.get_busy():
-            clock.tick(2)
 
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
@@ -358,20 +356,19 @@ class MusicPlayerPage(ttk.Frame):
         
 # The settings page       
 class SettingsPage(ttk.Frame):
-    def __init__(self, master):
-        global toggleButton
-        
+    def __init__(self, master):        
         ttk.Frame.__init__(self, master)
         
-        # Making sure that the button opens on the corresponding mode
+        self.darkModeCheckbox = ttk.Checkbutton(self, text = "Dark Mode", command = lambda: master.changeTheme(theme = appTheme))
         if appTheme == "equilux":
-            modeText = "Dark Mode"
-            
-        else:
-            modeText = "Light Mode"
+            self.darkModeCheckbox.configure(state = "!checked")
         
-        toggleButton = ttk.Button(self, text = modeText, width = 10, command = lambda: master.changeTheme(theme = appTheme))  # Change to a checkbox
-        toggleButton.pack()
+        else:
+            self.darkModeCheckbox.configure(state = "checked")
+        
+        self.darkModeCheckbox.pack()
+        
+        self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests")
         
 ###############
 # Definitions #
@@ -391,8 +388,11 @@ def createThemeFile():
     
     return appTheme
 
+def createPlayMusicFile():
+    pass
+
 # A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted
-def menuPass():
+def null():
     pass
 
 def createMenuBar():
@@ -401,41 +401,41 @@ def createMenuBar():
     # Instrument roles cascade
     menuBar.addMenuBar(
         "Instrument Roles", commands = [
-            ("Rock Band", menuPass, True)
+            ("Rock Band", null, True)
         ],
     )
 
     # Sight reading cascade
     menuBar.addMenuBar(
         "Sight Reading", commands = [
-            ("Tutorial", menuPass, True),
-            ("Test", menuPass, True)
+            ("Tutorial", null, True),
+            ("Test", null, True)
         ]
     )
     
     # Intervals cascade
     menuBar.addMenuBar(
         "Intervals", commands = [
-            ("Tutorial", menuPass, True),
+            ("Tutorial", null, True),
             ("Harmonic", lambda: app.switchPage(HarmonicIntervalsTest), True),
-            ("Melodic", menuPass, True)
+            ("Melodic", null, True)
         ]
     )
     
     # Chords cascade
     menuBar.addMenuBar(
         "Chords", commands = [
-            ("Tutorial", menuPass, True),
-            ("Chord Quality", menuPass, True),
-            ("Cadences", menuPass, True),
+            ("Tutorial", null, True),
+            ("Chord Quality", null, True),
+            ("Cadences", null, True),
         ]
     )
     
     # Terminology cascade
     menuBar.addMenuBar(
         "Terminology", commands = [
-            ("Tutorial", menuPass, True),
-            ("Flash Cards", menuPass, True)
+            ("Tutorial", null, True),
+            ("Flash Cards", null, True)
         ]
     )
     
@@ -465,6 +465,17 @@ if __name__ == "__main__":
     # First time use or missing theme.txt
     except FileNotFoundError:
         appTheme = createThemeFile()
+    
+    # Try getting the user's preference on sound in test
+    try:
+        with open('testSound.txt') as i:
+            playTestSound = bool(i.readline())
+    
+    except FileNotFoundError:
+        with open('testSound.txt', 'w') as i:
+            i.write("True")
+        
+        playTestSound = True
     
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
