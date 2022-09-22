@@ -1,13 +1,15 @@
-####### Imports #######
+###########
+# Imports #
+###########
 # GUI Creation
 from tkinter import *
-from tkinter import ttk # So I can use themed widgets
-from ttkthemes import ThemedStyle # Gives access to amazing Tkinter ttk themes without having to spend time designing my own one
+from tkinter import ttk  # So I can use themed widgets
+from ttkthemes import ThemedStyle  # Gives access to amazing Tkinter ttk themes
 from PIL import Image, ImageTk
 
 # Music
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Stop pygame's welcome message popping up in console
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Stop pygame's welcome message popping up in console
 from pygame import mixer
 from mutagen.wave import WAVE
 
@@ -15,11 +17,14 @@ from mutagen.wave import WAVE
 from pandas import read_json
 from random import choice
 from os import listdir, remove
+from pygame import time
 
 # https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
-####### Classes #######
-# The core of the app.
+###########
+# Classes #
+###########
+# The core of the app
 class musicApp(Tk):
     def __init__(self):
         global appTheme
@@ -43,15 +48,13 @@ class musicApp(Tk):
         self._frame = None
         self.switchPage(StartPage)
     
-    def addMenuBar(self, menuName, commands): # Create the menu bar
+    def addMenuBar(self, menuName, commands):  # Create the menu bar
         menu = Menu(self.menuBar, tearoff = 0)
         
         for command in commands:
             menu.add_command(label = command[0], command = command[1])
             
-        self.menuBar.add_cascade(label = menuName, menu = menu)        
-    
-    def switchPage(self, frameClass): # Switch between pages
+    def switchPage(self, frameClass):  # Switch between pages
         # Stop music from playing
         for x in range(5):
             mixer.Channel(x).stop()
@@ -64,7 +67,7 @@ class musicApp(Tk):
         self._frame = newFrame
         self._frame.pack()
 
-    def changeTheme(self, theme): # Change the program's theme when the button is clicked
+    def changeTheme(self, theme):  # Change the program's theme when the button is clicked
         global appTheme
         
         if theme == "equilux":
@@ -161,6 +164,14 @@ class HarmonicIntervalsTest(ttk.Frame):
         intervalImg = ImageTk.PhotoImage(intervalImage)
         self.intervalImageInterval = Label(self, image = intervalImg)
         self.intervalImageInterval.pack()
+    
+    def playMIDI(self, midiFile):
+        clock = time.Clock()
+        
+        mixer.music.load(midiFile)
+        mixer.music.play()
+        while mixer.music.get_busy():
+            clock.tick(5)
 
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
@@ -343,11 +354,13 @@ class SettingsPage(ttk.Frame):
         
         ttk.Button(self, text = "Home", command = lambda: master.switchPage(StartPage)).pack()
         
-####### Definitions ########      
+###############
+# Definitions #
+###############     
 def createThemeFile(): 
     from darkdetect import isDark
     
-    if isDark() == True:
+    if isDark() is True:
         appTheme = "equilux"
     
     else:
@@ -421,7 +434,9 @@ def createMenuBar():
         ]
     )
 
-####### Main code #######    
+#############
+# Main code #
+#############   
 if __name__ == "__main__":
     # Try getting the user's preferred theme
     try:
