@@ -17,6 +17,7 @@ from mutagen.wave import WAVE
 from pandas import read_json
 from random import choice
 from os import listdir, remove
+from sys import platform
 
 # https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
@@ -66,21 +67,35 @@ class musicApp(Tk):
         self._frame = newFrame
         self._frame.pack()
 
-    def changeTheme(self, theme):  # Change the program's theme when the button is clicked
+    def changeTheme(self, currentState):  # Change the program's theme when the button is clicked
         global appTheme
         
-        if theme == "equilux":
-            theme = "yaru"
+        if currentState == "equilux":
+            newState = "yaru"
         
         else:
-            theme = "equilux"
+            newState = "equilux"
         
-        self.style.theme_use(theme)
-        appTheme = theme
+        self.style.theme_use(newState)
+        appTheme = newState
         
         with open('theme.txt', 'w') as i:
-            i.write(theme)
+            i.write(newState)
+    
+    def changePlaySoundTestVariable(self, currentState):
+        global playTestSound
+        
+        if currentState == True:
+            newState = False
             
+        else:
+            newState = True
+        
+        playTestSound = newState
+        
+        with open('testSound.txt', 'w') as i:
+            i.write(str(newState))
+                        
 # The menu bar
 class MenuBar():
     def __init__(self, parent):
@@ -150,12 +165,10 @@ class HarmonicIntervalsTest(ttk.Frame):
         ttk.Frame.__init__(self, master)
         
         self.imageFolderOptions = listdir("images/intervals/harmonic")
-        # Get rid of the .DS_Store file as it crashes code
-        try:
-            self.imageFolderOptions.remove('.DS_Store')
         
-        except ValueError:
-            pass
+        # Get rid of the .DS_Store file as it crashes code
+        if platform == "darwin":  # if the operating system is a Mac
+            self.imageFolderOptions.remove('.DS_Store')
         
         self.imageFolder = choice(self.imageFolderOptions)
         
@@ -167,7 +180,8 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.intervalImageInterval = Label(self, image = intervalImg)
         self.intervalImageInterval.pack()
         
-        self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+        if playTestSound == True:
+            self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         
         self.p5Button = ttk.Button(self, text = "P5", command = self.buttonClicked)
         self.p5Button.pack()
@@ -185,7 +199,8 @@ class HarmonicIntervalsTest(ttk.Frame):
         newImg = ImageTk.PhotoImage(newImage)
         self.intervalImageInterval.configure(image = newImg)
         
-        self.playMIDI("music/midi/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
+        if playTestSound == True:
+            self.playMIDI("music/midi/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
     
     def playMIDI(self, midiFile):       
         musicFile = midiFile.replace('.png', '.mid')
@@ -359,16 +374,19 @@ class SettingsPage(ttk.Frame):
     def __init__(self, master):        
         ttk.Frame.__init__(self, master)
         
-        self.darkModeCheckbox = ttk.Checkbutton(self, text = "Dark Mode", command = lambda: master.changeTheme(theme = appTheme))
-        if appTheme == "equilux":
-            self.darkModeCheckbox.configure(state = "!checked")
+        self.darkModeCheckbox = ttk.Checkbutton(self, text = "Dark Mode", command = lambda: master.changeTheme(appTheme))
         
-        else:
-            self.darkModeCheckbox.configure(state = "checked")
+        if appTheme == "equilux":
+            self.darkModeCheckbox.state(["selected"])
         
         self.darkModeCheckbox.pack()
         
-        self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests")
+        self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests", command = lambda: master.changePlaySoundTestVariable(playTestSound))
+        
+        if playTestSound == True:
+            self.playTestMusicCheckbox.state(["selected"])
+        
+        self.playTestMusicCheckbox.pack()
         
 ###############
 # Definitions #
@@ -387,9 +405,6 @@ def createThemeFile():
         i.write(appTheme)
     
     return appTheme
-
-def createPlayMusicFile():
-    pass
 
 # A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted
 def null():
