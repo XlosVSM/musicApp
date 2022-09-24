@@ -13,13 +13,11 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Stop pygame's welcome message 
 from pygame import mixer
 from mutagen.wave import WAVE
 
-# Misc (termcolor is only imported when there is an error)
+# Miscellaneous
 from pandas import read_json
 from random import choice
 from os import listdir, remove
 from sys import platform
-
-# https://commons.wikimedia.org/wiki/File:Perfect_intervals_on_C.png
 
 ###########
 # Classes #
@@ -145,7 +143,7 @@ class StartPage(ttk.Frame):
         self.sightReadingButton = ttk.Button(self, text = "\n\n\n  Sight Reading \n\n\n")
         self.sightReadingButton.grid(row = 1, column = 2, sticky = N + S + E + W)
         
-        self.intervalsButton = ttk.Button(self, text = "Intervals")
+        self.intervalsButton = ttk.Button(self, text = "Intervals", command = lambda: master.switchPage(IntervalsTutorialPage))
         self.intervalsButton.grid(row = 2, column = 1, sticky = N + S + E + W)
         
         self.chordsButton = ttk.Button(self, text = "\n\n\nChords\n\n\n")
@@ -154,8 +152,29 @@ class StartPage(ttk.Frame):
         self.terminologyButton = ttk.Button(self, text = "  Terminology   ")
         self.terminologyButton.grid(row = 3, column = 1, sticky = N + S + E + W)
         
-        self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: app.switchPage(MusicSelectorPage))
+        self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: master.switchPage(MusicSelectorPage))
         self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + E + W)
+
+# Intervals tutorial
+class IntervalsTutorialPage(ttk.Frame):
+    def __init__(self, master):
+        global intervalExampleImg
+        
+        ttk.Frame.__init__(self, master)
+        
+        intervalExampleImage = Image.open("images/exampleIntervals.png")  # Hyacinth, CC BY-SA 3.0, via Wikimedia Commons+
+        intervalExampleImg = ImageTk.PhotoImage(intervalExampleImage)
+        self.intervalExampleImageLabel = Label(self, image = intervalExampleImg)
+        self.intervalExampleImageLabel.pack()
+        
+        informationLabel = ttk.Label(self, text = '''Intervals is the distance between two notes. Above is a picture showing what all the\nintervals will look like at the tonic of middle C. The way to tell what the interval is by\ncounting how many lines and gaps there are between the notes starting on the first note.\nFor example, a perfect fourth would have 4 lines and gaps in between it.\n''', font = ("TkDefaultFont", 20), justify =  CENTER)
+        informationLabel.pack()
+        
+        harmonicIntervalTestButton = ttk.Button(self, text = "Harmonic Interval Test", command = lambda: master.switchPage(HarmonicIntervalsTest))
+        harmonicIntervalTestButton.pack()
+        
+        melodicIntervalTestButton = ttk.Button(self, text = "Melodic Interval Test")
+        melodicIntervalTestButton.pack()
 
 # Harmonic intervals test
 class HarmonicIntervalsTest(ttk.Frame):
@@ -164,43 +183,53 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         ttk.Frame.__init__(self, master)
         
+        # Add score counter
+        self.score = 0
+        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score), font = ("TkDefaultFont", 32))
+        self.scoreCounter.pack()
+        
         self.imageFolderOptions = listdir("images/intervals/harmonic")
         
         # Get rid of the .DS_Store file as it crashes code
         if platform == "darwin":  # if the operating system is a Mac
             self.imageFolderOptions.remove('.DS_Store')
         
-        self.imageFolder = choice(self.imageFolderOptions)
-        
-        self.imagePitchOptions = listdir("images/intervals/harmonic/" + self.imageFolder)
-        self.testImage = choice(self.imagePitchOptions)        
+        self.selectRandomImage()      
         
         intervalImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         intervalImg = ImageTk.PhotoImage(intervalImage)
         self.intervalImageInterval = Label(self, image = intervalImg)
         self.intervalImageInterval.pack()
         
-        if playTestSound == True:
+        if playTestSound is True:
             self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         
-        self.p5Button = ttk.Button(self, text = "P5", command = self.buttonClicked)
+        self.p5Button = ttk.Button(self, text = "P5", command = lambda: self.buttonClicked("P5"))
         self.p5Button.pack()
         
-        self.octaveButton = ttk.Button(self, text = "Octave", command = self.buttonClicked)
+        self.octaveButton = ttk.Button(self, text = "Octave", command = lambda: self.buttonClicked("Octave"))
         self.octaveButton.pack()
     
-    def buttonClicked(self):
+    def selectRandomImage(self):
+        self.imageFolder = choice(self.imageFolderOptions)
+        imagePitchOptions = listdir("images/intervals/harmonic/" + self.imageFolder)
+        self.testImage = choice(imagePitchOptions)
+    
+    def buttonClicked(self, selectedButton):
         global newImg
         
-        newImageFolder = choice(self.imageFolderOptions)
-        newImageFile = choice(self.imagePitchOptions)
+        if selectedButton == self.imageFolder:
+            self.score += 1
+            self.scoreCounter.config(text = "Score: " + str(self.score))
         
-        newImage = Image.open("images/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
+        self.selectRandomImage()
+        
+        newImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         newImg = ImageTk.PhotoImage(newImage)
         self.intervalImageInterval.configure(image = newImg)
         
-        if playTestSound == True:
-            self.playMIDI("music/midi/intervals/harmonic/" + newImageFolder + "/" + newImageFile)
+        if playTestSound is True:
+            self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
     
     def playMIDI(self, midiFile):       
         musicFile = midiFile.replace('.png', '.mid')
@@ -227,7 +256,7 @@ class MusicSelectorPage(ttk.Frame):
         
         app.switchPage(MusicPlayerPage)
 
-# The music player 
+# The music player
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
         # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
@@ -245,16 +274,16 @@ class MusicPlayerPage(ttk.Frame):
         albumCover = Image.open("images/albumCovers/" + albumFile)
         albumCoverImg = ImageTk.PhotoImage(albumCover)
         self.albumCoverLabel = Label(self, image = albumCoverImg)
-        self.albumCoverLabel.grid(rowspan = 3, columnspan = 3)
+        self.albumCoverLabel.grid(rowspan = 6, columnspan = 6)
         
-        songName = ttk.Label(self, text = "Title: " + chosenSongTitle + " ", font = ("Helvetica", 20))
-        songName.grid(row = 0, column = 4)
+        songName = ttk.Label(self, text = "Title: " + chosenSongTitle + " ", font = ("Helvetica", 20), justify = CENTER)
+        songName.grid(row = 0, column = 6, columnspan = 3)
         
-        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist + " ", font = ("Helvetica", 20))
-        artistName.grid(row = 1, column = 4)
+        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist + " ", font = ("Helvetica", 20), justify = CENTER)
+        artistName.grid(row = 2, column = 6, columnspan = 3)
         
-        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum + " ", font = ("Helvetica", 20))
-        albumName.grid(row = 2, column = 4)
+        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum + " ", font = ("Helvetica", 20), justify = CENTER)
+        albumName.grid(row = 4, column = 6, columnspan = 3)
         
         # Play the song
         self.file = "music/stems/" + songFile
@@ -283,12 +312,6 @@ class MusicPlayerPage(ttk.Frame):
         song = WAVE(self.file + "/bass.wav") # Any of the files would work
         songDuration = song.info.length
         
-        self.progressBar = ttk.Scale(self, from_ = 0, to = songDuration, orient = HORIZONTAL, length = 520)
-        
-        self.progressBar.bind("<ButtonRelease-1>", self.updateValue)
-        self.progressBar.set(0)
-        self.progressBar.grid(row = 4, columnspan = 5)
-        
         # Create the volume sliders for the mixer tracks
         # Bass slider
         self.bassSlider = Scale(self, from_ = 100, to = 0, command = self.bassVolume)
@@ -299,7 +322,10 @@ class MusicPlayerPage(ttk.Frame):
             self.bassSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.bassSlider.set(100)
-        self.bassSlider.grid(row = 5, column = 0)
+        self.bassSlider.grid(row = 9, column = 0)
+        
+        self.bassSliderLabel = ttk.Label(self, text = "Bass", wraplength = 1, justify = CENTER)
+        self.bassSliderLabel.grid(row = 9, column = 1, sticky = W)
         
         # Drums slider
         self.drumsSlider = Scale(self, from_ = 100, to = 0, command = self.drumsVolume)
@@ -310,7 +336,10 @@ class MusicPlayerPage(ttk.Frame):
             self.drumsSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.drumsSlider.set(100)
-        self.drumsSlider.grid(row = 5, column = 1)
+        self.drumsSlider.grid(row = 9, column = 2)
+        
+        self.drumsSliderLabel = ttk.Label(self, text = "Drums", wraplength = 1, justify = CENTER)
+        self.drumsSliderLabel.grid(row = 9, column = 3, sticky = W)
         
         # Other slider
         self.otherSlider = Scale(self, from_ = 100, to = 0, command = self.otherVolume)
@@ -321,7 +350,10 @@ class MusicPlayerPage(ttk.Frame):
             self.otherSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.otherSlider.set(100)
-        self.otherSlider.grid(row = 5, column = 2)
+        self.otherSlider.grid(row = 9, column = 4)
+        
+        self.otherSliderLabel = ttk.Label(self, text = "Other", wraplength = 1, justify = CENTER)
+        self.otherSliderLabel.grid(row = 9, column = 5, sticky = W)
         
         # Piano slider
         self.pianoSlider = Scale(self, from_ = 100, to = 0, command = self.pianoVolume)
@@ -332,7 +364,10 @@ class MusicPlayerPage(ttk.Frame):
             self.pianoSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.pianoSlider.set(100)
-        self.pianoSlider.grid(row = 5, column = 3)
+        self.pianoSlider.grid(row = 9, column = 6)
+        
+        self.pianoSliderLabel = ttk.Label(self, text = "Piano", wraplength = 1, justify = CENTER)
+        self.pianoSliderLabel.grid(row = 9, column = 7, sticky = W)
         
         # Vocals slider
         self.vocalsSlider = Scale(self, from_ = 100, to = 0, command = self.vocalVolume)
@@ -343,7 +378,10 @@ class MusicPlayerPage(ttk.Frame):
             self.vocalsSlider.config(bg = "white", activebackground = "white", fg = "black")
         
         self.vocalsSlider.set(100)
-        self.vocalsSlider.grid(row = 5, column = 4)
+        self.vocalsSlider.grid(row = 9, column = 8)
+        
+        self.vocalsSliderLabel = ttk.Label(self, text = "Vocals", wraplength = 1, justify = CENTER)
+        self.vocalsSliderLabel.grid(row = 9, column = 9, sticky = W)
     
     def updateValue(self, event):
         channel4Sound = mixer.Sound(self.file + "/piano.wav")
@@ -383,10 +421,18 @@ class SettingsPage(ttk.Frame):
         
         self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests", command = lambda: master.changePlaySoundTestVariable(playTestSound))
         
-        if playTestSound == True:
+        if playTestSound is True:
             self.playTestMusicCheckbox.state(["selected"])
         
         self.playTestMusicCheckbox.pack()
+        
+# About page
+class AboutPage(ttk.Frame):
+    def __init__(self, master):
+        ttk.Frame.__init__(self, master)
+        
+        aboutText = ttk.Label(self, text = '''My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ''', font = ("TkDefaultFont", 20), justify = CENTER)
+        aboutText.pack()
         
 ###############
 # Definitions #
@@ -416,55 +462,56 @@ def createMenuBar():
     # Instrument roles cascade
     menuBar.addMenuBar(
         "Instrument Roles", commands = [
-            ("Rock Band", null, True)
+            ("Rock Band", null)
         ],
     )
 
     # Sight reading cascade
     menuBar.addMenuBar(
         "Sight Reading", commands = [
-            ("Tutorial", null, True),
-            ("Test", null, True)
+            ("Tutorial", null),
+            ("Test", null)
         ]
     )
     
     # Intervals cascade
     menuBar.addMenuBar(
         "Intervals", commands = [
-            ("Tutorial", null, True),
-            ("Harmonic", lambda: app.switchPage(HarmonicIntervalsTest), True),
-            ("Melodic", null, True)
+            ("Tutorial", lambda: app.switchPage(IntervalsTutorialPage)),
+            ("Harmonic", lambda: app.switchPage(HarmonicIntervalsTest)),
+            ("Melodic", null)
         ]
     )
     
     # Chords cascade
     menuBar.addMenuBar(
         "Chords", commands = [
-            ("Tutorial", null, True),
-            ("Chord Quality", null, True),
-            ("Cadences", null, True),
+            ("Tutorial", null),
+            ("Chord Quality", null),
+            ("Cadences", null),
         ]
     )
     
     # Terminology cascade
     menuBar.addMenuBar(
         "Terminology", commands = [
-            ("Tutorial", null, True),
-            ("Flash Cards", null, True)
+            ("Tutorial", null),
+            ("Flash Cards", null)
         ]
     )
     
     # Instrument practice cascade
     menuBar.addMenuBar(
         "Instrument Practice", commands = [
-            ("Choose Song", lambda: app.switchPage(MusicSelectorPage), True)
+            ("Choose Song", lambda: app.switchPage(MusicSelectorPage))
         ]
     )
         
     # Preferences cascade
     menuBar.addMenuBar(
         "Preferences", commands = [
-            ("Settings", lambda: app.switchPage(SettingsPage), True)
+            ("Settings", lambda: app.switchPage(SettingsPage)),
+            ("About", lambda: app.switchPage(AboutPage))
         ]
     )
 
