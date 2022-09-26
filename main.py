@@ -183,9 +183,12 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         ttk.Frame.__init__(self, master)
         
+        # Question counter
+        self.questionCounter = 0
+        
         # Add score counter
         self.score = 0
-        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score), font = ("TkDefaultFont", 32))
+        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score) + "/" + str(self.questionCounter), font = ("TkDefaultFont", 32))
         self.scoreCounter.pack()
         
         self.imageFolderOptions = listdir("images/intervals/harmonic")
@@ -218,9 +221,11 @@ class HarmonicIntervalsTest(ttk.Frame):
     def buttonClicked(self, selectedButton):
         global newImg
         
+        self.questionCounter += 1
+        
         if selectedButton == self.imageFolder:
             self.score += 1
-            self.scoreCounter.config(text = "Score: " + str(self.score))
+            self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
         self.selectRandomImage()
         
@@ -382,6 +387,8 @@ class MusicPlayerPage(ttk.Frame):
         
         self.vocalsSliderLabel = ttk.Label(self, text = "Vocals", wraplength = 1, justify = CENTER)
         self.vocalsSliderLabel.grid(row = 9, column = 9, sticky = W)
+        
+        ttk.Label(self, text = " ").grid(row = 10)  # Spacing out frame
     
     def updateValue(self, event):
         channel4Sound = mixer.Sound(self.file + "/piano.wav")
