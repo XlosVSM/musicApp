@@ -11,7 +11,6 @@ from PIL import Image, ImageTk
 from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Stop pygame's welcome message popping up in console
 from pygame import mixer
-from mutagen.wave import WAVE
 
 # Miscellaneous
 from pandas import read_json
@@ -54,8 +53,8 @@ class musicApp(Tk):
             
     def switchPage(self, frameClass):  # Switch between pages
         # Stop music from playing
-        for x in range(5):
-            mixer.Channel(x).stop()
+        for mixerChannel in range(5):
+            mixer.Channel(mixerChannel).stop()
         
         newFrame = frameClass(self)
         
@@ -155,6 +154,73 @@ class StartPage(ttk.Frame):
         self.instrumentPracticeButton = ttk.Button(self, text = "\n\nInstrument\nPractice\n\n", command =  lambda: master.switchPage(MusicSelectorPage))
         self.instrumentPracticeButton.grid(row = 3, column = 2, sticky = N + S + E + W)
 
+# Sight reading test
+class SightReadingTest(ttk.Frame):
+    def __init__(self, master):
+        global sightReadingImg
+        
+        ttk.Frame.__init__(self, master)
+        
+        # Question counter
+        self.questionCounter = 0
+        
+        # Add score counter
+        self.score = 0
+        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score) + "/" + str(self.questionCounter), font = ("TkDefaultFont", 32))
+        self.scoreCounter.pack()
+        
+        self.imageFolderOptions = listdir("images/sightReading/")
+        
+        # Get rid of the .DS_Store file as it crashes code
+        if platform == "darwin":  # if the operating system is a Mac
+            self.imageFolderOptions.remove('.DS_Store')
+        
+        self.selectRandomImage("sightReading")
+        
+        sightReadingImage = Image.open("images/sightReading/" + self.imageFolder + "/" + self.clef + "/" + self.testImage)
+        sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
+        self.sightReadingImageLabel = Label(self, image = sightReadingImg)
+        self.sightReadingImageLabel.pack()
+        
+        if playTestSound is True:
+            self.playMIDI("music/midi/" + self.imageFolder + "/" + self.testImage)
+    
+    def selectRandomImage(self, testTopic):
+        if testTopic == "sightReading":
+            self.imageFolder = choice(self.imageFolderOptions)
+            self.clef = choice(listdir("images/" + testTopic + "/" + self.imageFolder))
+            imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder + "/" + self.clef)
+            self.testImage = choice(imagePitchOptions)
+        
+        else:
+            self.imageFolder = choice(self.imageFolderOptions)
+            imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
+            self.testImage = choice(imagePitchOptions)
+    
+    def buttonClicked(self, selectedButton, testTopic):
+        global newImg
+        
+        self.questionCounter += 1
+        
+        if selectedButton == self.imageFolder:
+            self.score += 1
+            self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
+        
+        self.selectRandomImage()
+        
+        newImage = Image.open("images/" + testTopic + "/" + self.testImage)
+        newImg = ImageTk.PhotoImage(newImage)
+        self.sightReadingImageLabel.configure(image = newImg)
+        
+        if playTestSound is True:
+            self.playMIDI("music/midi/" + testTopic + "/" + self.imageFolder + "/" + self.testImage)
+    
+    def playMIDI(self, midiFile):       
+        musicFile = midiFile.replace('.png', '.mid')
+        
+        mixer.music.load(musicFile)
+        mixer.music.play()
+
 # Intervals tutorial
 class IntervalsTutorialPage(ttk.Frame):
     def __init__(self, master):
@@ -197,12 +263,12 @@ class HarmonicIntervalsTest(ttk.Frame):
         if platform == "darwin":  # if the operating system is a Mac
             self.imageFolderOptions.remove('.DS_Store')
         
-        self.selectRandomImage()      
+        self.selectRandomImage("intervals/harmonic")      
         
         intervalImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         intervalImg = ImageTk.PhotoImage(intervalImage)
-        self.intervalImageInterval = Label(self, image = intervalImg)
-        self.intervalImageInterval.pack()
+        self.harmonicIntervalImageLabel = Label(self, image = intervalImg)
+        self.harmonicIntervalImageLabel.pack()
         
         if playTestSound is True:
             self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
@@ -213,9 +279,9 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.octaveButton = ttk.Button(self, text = "Octave", command = lambda: self.buttonClicked("Octave"))
         self.octaveButton.pack()
     
-    def selectRandomImage(self):
+    def selectRandomImage(self, testTopic):
         self.imageFolder = choice(self.imageFolderOptions)
-        imagePitchOptions = listdir("images/intervals/harmonic/" + self.imageFolder)
+        imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
         self.testImage = choice(imagePitchOptions)
     
     def buttonClicked(self, selectedButton):
@@ -227,11 +293,11 @@ class HarmonicIntervalsTest(ttk.Frame):
             self.score += 1
             self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
-        self.selectRandomImage()
+        self.selectRandomImage("intervals/harmonic")
         
         newImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         newImg = ImageTk.PhotoImage(newImage)
-        self.intervalImageInterval.configure(image = newImg)
+        self.harmonicIntervalImageLabel.configure(image = newImg)
         
         if playTestSound is True:
             self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
@@ -312,10 +378,6 @@ class MusicPlayerPage(ttk.Frame):
         self.channel5 = mixer.Channel(4)
         channel5Sound = mixer.Sound(self.file + "/vocals.wav")
         self.channel5.play(channel5Sound)
-        
-        # Add the progress bar
-        song = WAVE(self.file + "/bass.wav") # Any of the files would work
-        songDuration = song.info.length
         
         # Create the volume sliders for the mixer tracks
         # Bass slider
@@ -438,7 +500,7 @@ class AboutPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
-        aboutText = ttk.Label(self, text = '''My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ''', font = ("TkDefaultFont", 20), justify = CENTER)
+        aboutText = ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ", font = ("TkDefaultFont", 20), justify = CENTER)
         aboutText.pack()
         
 ###############
@@ -477,7 +539,7 @@ def createMenuBar():
     menuBar.addMenuBar(
         "Sight Reading", commands = [
             ("Tutorial", null),
-            ("Test", null)
+            ("Test", lambda: app.switchPage(SightReadingTest))
         ]
     )
     
@@ -546,6 +608,7 @@ if __name__ == "__main__":
         
         playTestSound = True
     
+    # Initialise pygame's mixer
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
     
