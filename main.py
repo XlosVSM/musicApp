@@ -96,12 +96,6 @@ class musicApp(Tk):
         with open('theme.txt', 'w') as i:
             i.write(self.appTheme)
     
-    #def addMenuBar(self, menuName, commands):  # Create the menu bar
-    #    menu = Menu(self.menuBar, tearoff = 0)
-        
-    #    menu.add_command(label = menuName, command = commands)
-           
-    # A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted 
     def null(self):
         pass
 
@@ -278,7 +272,11 @@ class SightReadingTest(ttk.Frame):
         
         # Get rid of the .DS_Store file as it crashes code
         if platform == "darwin":  # if the operating system is a Mac
-            self.imageFolderOptions.remove('.DS_Store')
+            try:
+                self.imageFolderOptions.remove('.DS_Store')
+            
+            except ValueError:  # In case the user does not open the folder, thus not creating a .DS_Store
+                pass
         
         self.selectRandomImage("sightReading")
         
@@ -286,6 +284,42 @@ class SightReadingTest(ttk.Frame):
         self.sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
         self.sightReadingImageLabel = Label(self, image = self.sightReadingImg)
         self.sightReadingImageLabel.pack()
+        
+        self.aFlatButton = ttk.Button(self, text = "Ab", command = lambda: self.buttonClicked(master, "Ab", "sightReading"))
+        self.aFlatButton.pack()
+        
+        self.aButton = ttk.Button(self, text = "A", command = lambda: self.buttonClicked(master, "A", "sightReading"))
+        self.aButton.pack()
+        
+        self.bFlatButton = ttk.Button(self, text = "Bb", command = lambda: self.buttonClicked(master, "Bb", "sightReading"))
+        self.bFlatButton.pack()
+        
+        self.bButton = ttk.Button(self, text = "B", command = lambda: self.buttonClicked(master, "B", "sightReading"))
+        self.bButton.pack()
+        
+        self.cButton = ttk.Button(self, text = "C", command = lambda: self.buttonClicked(master, "C", "sightReading"))
+        self.cButton.pack()
+        
+        self.cSharpButton = ttk.Button(self, text = "C#", command = lambda: self.buttonClicked(master, "C#", "sightReading"))
+        self.cSharpButton.pack()
+        
+        self.dButton = ttk.Button(self, text = "D", command = lambda: self.buttonClicked(master, "D", "sightReading"))
+        self.dButton.pack()
+        
+        self.eFlatButton = ttk.Button(self, text = "Eb", command = lambda: self.buttonClicked(master, "Eb", "sightReading"))
+        self.eFlatButton.pack()
+        
+        self.eButton = ttk.Button(self, text = "E", command = lambda: self.buttonClicked(master, "E", "sightReading"))
+        self.eButton.pack()
+        
+        self.fButton = ttk.Button(self, text = "F", command = lambda: self.buttonClicked(master, "F", "sightReading"))
+        self.fButton.pack()
+        
+        self.fSharpButton = ttk.Button(self, text = "F#", command = lambda: self.buttonClicked(master, "F#", "sightReading"))
+        self.fSharpButton.pack()
+        
+        self.gButton = ttk.Button(self, text = "G", command = lambda: self.buttonClicked(master, "G", "sightReading"))
+        self.gButton.pack()
         
         if master.playTestSound is True:
             self.playMIDI("music/midi/" + self.imageFolder + "/" + self.testImage)
@@ -309,9 +343,9 @@ class SightReadingTest(ttk.Frame):
             self.score += 1
             self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
-        self.selectRandomImage()
+        self.selectRandomImage("sightReading")
         
-        newImage = Image.open("images/" + testTopic + "/" + self.testImage)
+        newImage = Image.open("images/" + testTopic + "/" + self.imageFolder + "/" + self.clef + "/" + self.testImage)
         self.newImg = ImageTk.PhotoImage(newImage)
         self.sightReadingImageLabel.configure(image = self.newImg)
         
@@ -426,7 +460,7 @@ class MusicSelectorPage(ttk.Frame):
         
 # The music player
 class MusicPlayerPage(ttk.Frame):
-    def __init__(self, master):
+    def __init__(self, master):        
         # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
         ttk.Frame.__init__(self, master)
         
@@ -547,10 +581,6 @@ class MusicPlayerPage(ttk.Frame):
         
         ttk.Label(self, text = " ").grid(row = 10)  # Spacing out frame
     
-    def updateValue(self, event):
-        channel4Sound = mixer.Sound(self.file + "/piano.wav")
-        self.channel4.play(channel4Sound)
-    
     def bassVolume(self, x):
         volume = self.bassSlider.get() / 100
         self.channel1.set_volume(volume)
@@ -567,7 +597,7 @@ class MusicPlayerPage(ttk.Frame):
         volume = self.pianoSlider.get() / 100
         self.channel4.set_volume(volume)
        
-    def vocalVolume(self, x):  # Making the sliders change their corresponding mixer channel's volume
+    def vocalVolume(self, x):
         volume = self.vocalsSlider.get() / 100
         self.channel5.set_volume(volume)
         
