@@ -24,32 +24,145 @@ from sys import platform
 # The core of the app
 class musicApp(Tk):
     def __init__(self):
-        global appTheme
-        
         Tk.__init__(self)
         
         # Style the code
         self.title("Music App")
         self.state("zoomed")
+        
+        # Try getting the user's preferred theme
+        try:
+            with open('theme.txt') as i:
+                self.appTheme = i.readline()
+        
+        # First time use or missing theme.txt
+        except FileNotFoundError:
+            self.appTheme = self.createThemeFile()
+        
         self.style = ThemedStyle(self)
         try:
-            self.style.set_theme(appTheme)
+            self.style.set_theme(self.appTheme)
         
         # If theme.txt is tampered with, it will delete the file and rewrite it
         except TclError:
             remove("theme.txt")
-            appTheme = createThemeFile()
-            self.style.set_theme(appTheme)
+            self.appTheme = self.createThemeFile()
+            self.style.set_theme(self.appTheme)
+        
+        # Try getting the user's preference on sound in test
+        try:
+            with open('testSound.txt') as i:
+                self.playTestSound = bool(i.readline())
+    
+        except FileNotFoundError:
+            with open('testSound.txt', 'w') as i:
+                i.write("True")
+        
+            self.playTestSound = True
+        
+        # Get the song data
+        self.df = read_json("songInfo.json")
+        self.dfRange = len(self.df)
+    
+        # Create lists of the data from the JSON file to speed up the program
+        songName = self.df.loc[:, "Song Name"]
+        self.songNameList = songName.tolist()
+    
+        songArtist = self.df.loc[:, "Artist"]
+        self.songArtistList = songArtist.tolist()
+    
+        songAlbum = self.df.loc[:, "Album"]
+        self.songAlbumList = songAlbum.tolist()
+    
+        albumCover = self.df.loc[:, "Album Cover"]
+        self.albumCoverList = albumCover.tolist()
+        
+        self.createMenuBar()
         
         # Open on the starting page
         self._frame = None
         self.switchPage(StartPage)
     
-    def addMenuBar(self, menuName, commands):  # Create the menu bar
-        menu = Menu(self.menuBar, tearoff = 0)
+    def createThemeFile(self): 
+        from darkdetect import isDark
+    
+        if isDark() is True:
+            self.appTheme = "equilux"
+    
+        else:
+            self.appTheme = "yaru"
         
-        for command in commands:
-            menu.add_command(label = command[0], command = command[1])
+        # Create a file so the code uses the theme next time the user runs the code
+        with open('theme.txt', 'w') as i:
+            i.write(self.appTheme)
+    
+    #def addMenuBar(self, menuName, commands):  # Create the menu bar
+    #    menu = Menu(self.menuBar, tearoff = 0)
+        
+    #    menu.add_command(label = menuName, command = commands)
+           
+    # A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted 
+    def null(self):
+        pass
+
+    def createMenuBar(self):
+        menuBar = MenuBar(self)
+    
+        # Instrument roles cascade
+        menuBar.addMenuBar(
+            "Instrument Roles", commands = [
+                ("Rock Band", self.null)
+            ],
+        )
+
+        # Sight reading cascade
+        menuBar.addMenuBar(
+            "Sight Reading", commands = [
+                ("Tutorial", self.null),
+                ("Test", lambda: self.switchPage(SightReadingTest))
+            ]
+        )
+    
+        # Intervals cascade
+        menuBar.addMenuBar(
+            "Intervals", commands = [
+                ("Tutorial", lambda: self.switchPage(IntervalsTutorialPage)),
+                ("Harmonic", lambda: self.switchPage(HarmonicIntervalsTest)),
+                ("Melodic", self.null)
+            ]
+        )
+    
+        # Chords cascade
+        menuBar.addMenuBar(
+            "Chords", commands = [
+                ("Tutorial", self.null),
+                ("Chord Quality", self.null),
+                ("Cadences", self.null),
+            ]
+        )
+    
+        # Terminology cascade
+        menuBar.addMenuBar(
+            "Terminology", commands = [
+                ("Tutorial", self.null),
+                ("Flash Cards", self.null)
+            ]
+        )
+    
+        # Instrument practice cascade
+        menuBar.addMenuBar(
+            "Instrument Practice", commands = [
+                ("Choose Song", lambda: app.switchPage(MusicSelectorPage))
+            ]
+        )
+        
+        # Preferences cascade
+        menuBar.addMenuBar(
+            "Preferences", commands = [
+                ("Settings", lambda: app.switchPage(SettingsPage)),
+                ("About", lambda: app.switchPage(AboutPage))
+            ]
+        )
             
     def switchPage(self, frameClass):  # Switch between pages
         # Stop music from playing
@@ -65,8 +178,6 @@ class musicApp(Tk):
         self._frame.pack()
 
     def changeTheme(self, currentState):  # Change the program's theme when the button is clicked
-        global appTheme
-        
         if currentState == "equilux":
             newState = "yaru"
         
@@ -74,33 +185,31 @@ class musicApp(Tk):
             newState = "equilux"
         
         self.style.theme_use(newState)
-        appTheme = newState
+        self.appTheme = newState
         
         with open('theme.txt', 'w') as i:
             i.write(newState)
     
     def changePlaySoundTestVariable(self, currentState):
-        global playTestSound
-        
         if currentState == True:
             newState = False
             
         else:
             newState = True
         
-        playTestSound = newState
+        self.playTestSound = newState
         
         with open('testSound.txt', 'w') as i:
             i.write(str(newState))
                         
 # The menu bar
 class MenuBar():
-    def __init__(self, parent):
-        self.menuBar = Menu(parent)
-        self.create()
+    def __init__(self, master):
+        self.menuBar = Menu(master)
+        self.create(master)
         
-    def create(self):
-        app.config(menu = self.menuBar)
+    def create(self, master):
+        master.config(menu = self.menuBar)
         
     def addMenuBar(self, menuName, commands):
         menu = Menu(self.menuBar, tearoff = 0)
@@ -112,9 +221,7 @@ class MenuBar():
 
 # The opening page
 class StartPage(ttk.Frame):
-    def __init__(self, master):
-        global trebleImg # Images must be global so they can be seen
-        
+    def __init__(self, master):       
         ttk.Frame.__init__(self, master)
         self.grid(sticky = N + S + E + W)
         
@@ -132,8 +239,8 @@ class StartPage(ttk.Frame):
         self.header.grid(row = 0, columnspan = 5, sticky = E + W)
         
         trebleImage = Image.open("images/trebleClef.png")
-        trebleImg = ImageTk.PhotoImage(trebleImage)
-        self.trebleImageLabel = Label(self, image = trebleImg)
+        self.trebleImg = ImageTk.PhotoImage(trebleImage)
+        self.trebleImageLabel = Label(self, image = self.trebleImg)
         self.trebleImageLabel.grid(rowspan = 4, column = 0)
         
         self.instrumentRoleButton = ttk.Button(self, text = "Instrument Roles")
@@ -157,8 +264,6 @@ class StartPage(ttk.Frame):
 # Sight reading test
 class SightReadingTest(ttk.Frame):
     def __init__(self, master):
-        global sightReadingImg
-        
         ttk.Frame.__init__(self, master)
         
         # Question counter
@@ -178,11 +283,11 @@ class SightReadingTest(ttk.Frame):
         self.selectRandomImage("sightReading")
         
         sightReadingImage = Image.open("images/sightReading/" + self.imageFolder + "/" + self.clef + "/" + self.testImage)
-        sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
-        self.sightReadingImageLabel = Label(self, image = sightReadingImg)
+        self.sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
+        self.sightReadingImageLabel = Label(self, image = self.sightReadingImg)
         self.sightReadingImageLabel.pack()
         
-        if playTestSound is True:
+        if master.playTestSound is True:
             self.playMIDI("music/midi/" + self.imageFolder + "/" + self.testImage)
     
     def selectRandomImage(self, testTopic):
@@ -197,9 +302,7 @@ class SightReadingTest(ttk.Frame):
             imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
             self.testImage = choice(imagePitchOptions)
     
-    def buttonClicked(self, selectedButton, testTopic):
-        global newImg
-        
+    def buttonClicked(self, master, selectedButton, testTopic):
         self.questionCounter += 1
         
         if selectedButton == self.imageFolder:
@@ -209,10 +312,10 @@ class SightReadingTest(ttk.Frame):
         self.selectRandomImage()
         
         newImage = Image.open("images/" + testTopic + "/" + self.testImage)
-        newImg = ImageTk.PhotoImage(newImage)
-        self.sightReadingImageLabel.configure(image = newImg)
+        self.newImg = ImageTk.PhotoImage(newImage)
+        self.sightReadingImageLabel.configure(image = self.newImg)
         
-        if playTestSound is True:
+        if master.playTestSound is True:
             self.playMIDI("music/midi/" + testTopic + "/" + self.imageFolder + "/" + self.testImage)
     
     def playMIDI(self, midiFile):       
@@ -224,13 +327,11 @@ class SightReadingTest(ttk.Frame):
 # Intervals tutorial
 class IntervalsTutorialPage(ttk.Frame):
     def __init__(self, master):
-        global intervalExampleImg
-        
         ttk.Frame.__init__(self, master)
         
         intervalExampleImage = Image.open("images/exampleIntervals.png")  # Hyacinth, CC BY-SA 3.0, via Wikimedia Commons+
-        intervalExampleImg = ImageTk.PhotoImage(intervalExampleImage)
-        self.intervalExampleImageLabel = Label(self, image = intervalExampleImg)
+        self.intervalExampleImg = ImageTk.PhotoImage(intervalExampleImage)
+        self.intervalExampleImageLabel = Label(self, image = self.intervalExampleImg)
         self.intervalExampleImageLabel.pack()
         
         informationLabel = ttk.Label(self, text = '''Intervals is the distance between two notes. Above is a picture showing what all the\nintervals will look like at the tonic of middle C. The way to tell what the interval is by\ncounting how many lines and gaps there are between the notes starting on the first note.\nFor example, a perfect fourth would have 4 lines and gaps in between it.\n''', font = ("TkDefaultFont", 20), justify =  CENTER)
@@ -245,8 +346,6 @@ class IntervalsTutorialPage(ttk.Frame):
 # Harmonic intervals test
 class HarmonicIntervalsTest(ttk.Frame):
     def __init__(self, master):
-        global intervalImg
-        
         ttk.Frame.__init__(self, master)
         
         # Question counter
@@ -266,17 +365,17 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.selectRandomImage("intervals/harmonic")      
         
         intervalImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
-        intervalImg = ImageTk.PhotoImage(intervalImage)
-        self.harmonicIntervalImageLabel = Label(self, image = intervalImg)
+        self.intervalImg = ImageTk.PhotoImage(intervalImage)
+        self.harmonicIntervalImageLabel = Label(self, image = self.intervalImg)
         self.harmonicIntervalImageLabel.pack()
         
-        if playTestSound is True:
+        if master.playTestSound is True:
             self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         
-        self.p5Button = ttk.Button(self, text = "P5", command = lambda: self.buttonClicked("P5"))
+        self.p5Button = ttk.Button(self, text = "P5", command = lambda: self.buttonClicked(master, "P5"))
         self.p5Button.pack()
         
-        self.octaveButton = ttk.Button(self, text = "Octave", command = lambda: self.buttonClicked("Octave"))
+        self.octaveButton = ttk.Button(self, text = "Octave", command = lambda: self.buttonClicked(master, "Octave"))
         self.octaveButton.pack()
     
     def selectRandomImage(self, testTopic):
@@ -284,9 +383,7 @@ class HarmonicIntervalsTest(ttk.Frame):
         imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
         self.testImage = choice(imagePitchOptions)
     
-    def buttonClicked(self, selectedButton):
-        global newImg
-        
+    def buttonClicked(self, master, selectedButton):
         self.questionCounter += 1
         
         if selectedButton == self.imageFolder:
@@ -296,10 +393,10 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.selectRandomImage("intervals/harmonic")
         
         newImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
-        newImg = ImageTk.PhotoImage(newImage)
-        self.harmonicIntervalImageLabel.configure(image = newImg)
+        self.newImg = ImageTk.PhotoImage(newImage)
+        self.harmonicIntervalImageLabel.configure(image = self.newImg)
         
-        if playTestSound is True:
+        if master.playTestSound is True:
             self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
     
     def playMIDI(self, midiFile):       
@@ -313,38 +410,36 @@ class MusicSelectorPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
-        for song in range(dfRange):
-            ttk.Button(self, text = songNameList[song], command = lambda i=song: self.playSong(i)).pack()
+        for song in range(master.dfRange):
+            ttk.Button(self, text = master.songNameList[song], command = lambda i=song: self.playSong(master, i)).pack()
         
-    def playSong(self, chosenSong):
-        global selectedSong, songFile
+    def playSong(self, master, chosenSong):
+        global selectedSong, songFile  # Only global part until I can find a way to bring the variables into another page
         
-        folders = df.loc[:, "Folder"]
+        folders = master.df.loc[:, "Folder"]
         folderList = folders.tolist()
         
         songFile = folderList[chosenSong]
         selectedSong = chosenSong
         
         app.switchPage(MusicPlayerPage)
-
+        
 # The music player
 class MusicPlayerPage(ttk.Frame):
     def __init__(self, master):
         # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
-        global albumCoverImg
-        
         ttk.Frame.__init__(self, master)
         
         # Call the corresponding song data
-        chosenSongTitle = songNameList[selectedSong]
-        chosenSongArtist = songArtistList[selectedSong]
-        chosenSongAlbum = songAlbumList[selectedSong]
-        albumFile = albumCoverList[selectedSong]
+        chosenSongTitle = master.songNameList[selectedSong]
+        chosenSongArtist = master.songArtistList[selectedSong]
+        chosenSongAlbum = master.songAlbumList[selectedSong]
+        albumFile = master.albumCoverList[selectedSong]
         
         # Create the song information
         albumCover = Image.open("images/albumCovers/" + albumFile)
-        albumCoverImg = ImageTk.PhotoImage(albumCover)
-        self.albumCoverLabel = Label(self, image = albumCoverImg)
+        self.albumCoverImg = ImageTk.PhotoImage(albumCover)
+        self.albumCoverLabel = Label(self, image = self.albumCoverImg)
         self.albumCoverLabel.grid(rowspan = 6, columnspan = 6)
         
         songName = ttk.Label(self, text = "Title: " + chosenSongTitle + " ", font = ("Helvetica", 20), justify = CENTER)
@@ -382,7 +477,7 @@ class MusicPlayerPage(ttk.Frame):
         # Create the volume sliders for the mixer tracks
         # Bass slider
         self.bassSlider = Scale(self, from_ = 100, to = 0, command = self.bassVolume)
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.bassSlider.config(bg = "gray33", activebackground="gray33")
             
         else:
@@ -396,7 +491,7 @@ class MusicPlayerPage(ttk.Frame):
         
         # Drums slider
         self.drumsSlider = Scale(self, from_ = 100, to = 0, command = self.drumsVolume)
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.drumsSlider.config(bg = "gray33", activebackground="gray33")
             
         else:
@@ -410,7 +505,7 @@ class MusicPlayerPage(ttk.Frame):
         
         # Other slider
         self.otherSlider = Scale(self, from_ = 100, to = 0, command = self.otherVolume)
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.otherSlider.config(bg = "gray33", activebackground="gray33")
             
         else:
@@ -424,7 +519,7 @@ class MusicPlayerPage(ttk.Frame):
         
         # Piano slider
         self.pianoSlider = Scale(self, from_ = 100, to = 0, command = self.pianoVolume)
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.pianoSlider.config(bg = "gray33", activebackground="gray33")
             
         else:
@@ -438,7 +533,7 @@ class MusicPlayerPage(ttk.Frame):
         
         # Vocals slider
         self.vocalsSlider = Scale(self, from_ = 100, to = 0, command = self.vocalVolume)
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.vocalsSlider.config(bg = "gray33", activebackground="gray33")
             
         else:
@@ -481,16 +576,16 @@ class SettingsPage(ttk.Frame):
     def __init__(self, master):        
         ttk.Frame.__init__(self, master)
         
-        self.darkModeCheckbox = ttk.Checkbutton(self, text = "Dark Mode", command = lambda: master.changeTheme(appTheme))
+        self.darkModeCheckbox = ttk.Checkbutton(self, text = "Dark Mode", command = lambda: master.changeTheme(master.appTheme))
         
-        if appTheme == "equilux":
+        if master.appTheme == "equilux":
             self.darkModeCheckbox.state(["selected"])
         
         self.darkModeCheckbox.pack()
         
-        self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests", command = lambda: master.changePlaySoundTestVariable(playTestSound))
+        self.playTestMusicCheckbox = ttk.Checkbutton(self, text = "Play music in tests", command = lambda: master.changePlaySoundTestVariable(master.playTestSound))
         
-        if playTestSound is True:
+        if master.playTestSound is True:
             self.playTestMusicCheckbox.state(["selected"])
         
         self.playTestMusicCheckbox.pack()
@@ -503,135 +598,14 @@ class AboutPage(ttk.Frame):
         aboutText = ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ", font = ("TkDefaultFont", 20), justify = CENTER)
         aboutText.pack()
         
-###############
-# Definitions #
-###############     
-def createThemeFile(): 
-    from darkdetect import isDark
-    
-    if isDark() is True:
-        appTheme = "equilux"
-    
-    else:
-        appTheme = "yaru"
-        
-    # Create a file so the code uses the theme next time the user runs the code
-    with open('theme.txt', 'w') as i:
-        i.write(appTheme)
-    
-    return appTheme
-
-# A blank pass for the unavailable pages as the program requires a definition for the button's command, and the pass command is not accepted
-def null():
-    pass
-
-def createMenuBar():
-    menuBar = MenuBar(app)
-    
-    # Instrument roles cascade
-    menuBar.addMenuBar(
-        "Instrument Roles", commands = [
-            ("Rock Band", null)
-        ],
-    )
-
-    # Sight reading cascade
-    menuBar.addMenuBar(
-        "Sight Reading", commands = [
-            ("Tutorial", null),
-            ("Test", lambda: app.switchPage(SightReadingTest))
-        ]
-    )
-    
-    # Intervals cascade
-    menuBar.addMenuBar(
-        "Intervals", commands = [
-            ("Tutorial", lambda: app.switchPage(IntervalsTutorialPage)),
-            ("Harmonic", lambda: app.switchPage(HarmonicIntervalsTest)),
-            ("Melodic", null)
-        ]
-    )
-    
-    # Chords cascade
-    menuBar.addMenuBar(
-        "Chords", commands = [
-            ("Tutorial", null),
-            ("Chord Quality", null),
-            ("Cadences", null),
-        ]
-    )
-    
-    # Terminology cascade
-    menuBar.addMenuBar(
-        "Terminology", commands = [
-            ("Tutorial", null),
-            ("Flash Cards", null)
-        ]
-    )
-    
-    # Instrument practice cascade
-    menuBar.addMenuBar(
-        "Instrument Practice", commands = [
-            ("Choose Song", lambda: app.switchPage(MusicSelectorPage))
-        ]
-    )
-        
-    # Preferences cascade
-    menuBar.addMenuBar(
-        "Preferences", commands = [
-            ("Settings", lambda: app.switchPage(SettingsPage)),
-            ("About", lambda: app.switchPage(AboutPage))
-        ]
-    )
-
 #############
 # Main code #
 #############   
-if __name__ == "__main__":
-    # Try getting the user's preferred theme
-    try:
-        with open('theme.txt') as i:
-            appTheme = i.readline()
-    
-    # First time use or missing theme.txt
-    except FileNotFoundError:
-        appTheme = createThemeFile()
-    
-    # Try getting the user's preference on sound in test
-    try:
-        with open('testSound.txt') as i:
-            playTestSound = bool(i.readline())
-    
-    except FileNotFoundError:
-        with open('testSound.txt', 'w') as i:
-            i.write("True")
-        
-        playTestSound = True
-    
+if __name__ == "__main__":    
     # Initialise pygame's mixer
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
     
-    # Get the song data
-    df = read_json("songInfo.json")
-    dfRange = len(df)
-    
-    # Create lists of the data from the JSON file to speed up the program
-    songName = df.loc[:, "Song Name"]
-    songNameList = songName.tolist()
-    
-    songArtist = df.loc[:, "Artist"]
-    songArtistList = songArtist.tolist()
-    
-    songAlbum = df.loc[:, "Album"]
-    songAlbumList = songAlbum.tolist()
-    
-    albumCover = df.loc[:, "Album Cover"]
-    albumCoverList = albumCover.tolist()
-    
     # Run the app
     app = musicApp()
-        
-    createMenuBar()
-    
     app.mainloop()
