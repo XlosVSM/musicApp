@@ -52,7 +52,7 @@ class musicApp(Tk):
         # Try getting the user's preference on sound in test
         try:
             with open('testSound.txt') as i:
-                self.playTestSound = bool(i.readline())
+                self.playTestSound = i.readline()
     
         except FileNotFoundError:
             with open('testSound.txt', 'w') as i:
@@ -64,18 +64,11 @@ class musicApp(Tk):
         self.df = read_json("songInfo.json")
         self.dfRange = len(self.df)
     
-        # Create lists of the data from the JSON file to speed up the program
-        songName = self.df.loc[:, "Song Name"]
-        self.songNameList = songName.tolist()
-    
-        songArtist = self.df.loc[:, "Artist"]
-        self.songArtistList = songArtist.tolist()
-    
-        songAlbum = self.df.loc[:, "Album"]
-        self.songAlbumList = songAlbum.tolist()
-    
-        albumCover = self.df.loc[:, "Album Cover"]
-        self.albumCoverList = albumCover.tolist()
+        # Create lists of the data from the JSON file to speed up the program     
+        self.songNameList = self.df.loc[:, "Song Name"].tolist()
+        self.songArtistList = self.df.loc[:, "Artist"].tolist()
+        self.songAlbumList = self.df.loc[:, "Album"].tolist()
+        self.albumCoverList = self.df.loc[:, "Album Cover"].tolist()
         
         self.createMenuBar()
         
@@ -87,14 +80,16 @@ class musicApp(Tk):
         from darkdetect import isDark
     
         if isDark() is True:
-            self.appTheme = "equilux"
+            appTheme = "equilux"
     
         else:
-            self.appTheme = "yaru"
+            appTheme = "yaru"
         
         # Create a file so the code uses the theme next time the user runs the code
         with open('theme.txt', 'w') as i:
-            i.write(self.appTheme)
+            i.write(appTheme)
+        
+        return appTheme
     
     def null(self):
         pass
@@ -627,7 +622,7 @@ class AboutPage(ttk.Frame):
         
         aboutText = ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ", font = ("TkDefaultFont", 20), justify = CENTER)
         aboutText.pack()
-        
+             
 #############
 # Main code #
 #############   
