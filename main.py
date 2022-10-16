@@ -13,9 +13,10 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Stop pygame's welcome message 
 from pygame import mixer
 
 # Miscellaneous
-from pandas import read_json
+from pandas import DataFrame, read_json
+from darkdetect import isDark
 from random import choice
-from os import listdir, remove
+from os import listdir
 from sys import platform
 
 ###########
@@ -30,14 +31,20 @@ class musicApp(Tk):
         self.title("Music App")
         self.state("zoomed")
         
-        # Try getting the user's preferred theme
+        # Get the user's preferences
         try:
-            with open('theme.txt') as i:
-                self.appTheme = i.readline()
+            userSettings = read_json("preferences.json")
+            self.appTheme = userSettings.loc[0, "State",]
+            self.playTestSound = bool(userSettings.loc[1, "State"])
         
-        # First time use or missing theme.txt
         except FileNotFoundError:
-            self.appTheme = self.createThemeFile()
+            self.appTheme = self.setDefaultTheme()
+            self.playTestSound = True
+            
+            data = [['App Theme', self.appTheme], ['Play Music', 'True']]
+            df = DataFrame(data, columns = ['Variable', 'State'])
+            
+            df.to_json('preferences.json')
         
         self.style = ThemedStyle(self)
         try:
@@ -45,20 +52,8 @@ class musicApp(Tk):
         
         # If theme.txt is tampered with, it will delete the file and rewrite it
         except TclError:
-            remove("theme.txt")
-            self.appTheme = self.createThemeFile()
+            self.appTheme = self.setDefaultTheme()
             self.style.set_theme(self.appTheme)
-        
-        # Try getting the user's preference on sound in test
-        try:
-            with open('testSound.txt') as i:
-                self.playTestSound = i.readline()
-    
-        except FileNotFoundError:
-            with open('testSound.txt', 'w') as i:
-                i.write("True")
-        
-            self.playTestSound = True
         
         # Get the song data
         self.df = read_json("songInfo.json")
@@ -76,18 +71,12 @@ class musicApp(Tk):
         self._frame = None
         self.switchPage(StartPage)
     
-    def createThemeFile(self): 
-        from darkdetect import isDark
-    
+    def setDefaultTheme(self): 
         if isDark() is True:
             appTheme = "equilux"
     
         else:
             appTheme = "yaru"
-        
-        # Create a file so the code uses the theme next time the user runs the code
-        with open('theme.txt', 'w') as i:
-            i.write(appTheme)
         
         return appTheme
     
@@ -176,8 +165,10 @@ class musicApp(Tk):
         self.style.theme_use(newState)
         self.appTheme = newState
         
-        with open('theme.txt', 'w') as i:
-            i.write(newState)
+        data = [['App Theme', self.appTheme], ['Play Music', str(self.playTestSound)]]
+        df = DataFrame(data, columns = ['Variable', 'State'])
+            
+        df.to_json('preferences.json')
     
     def changePlaySoundTestVariable(self, currentState):
         if currentState == True:
@@ -188,8 +179,17 @@ class musicApp(Tk):
         
         self.playTestSound = newState
         
-        with open('testSound.txt', 'w') as i:
-            i.write(str(newState))
+        data = [['App Theme', self.appTheme], ['Play Music', str(self.playTestSound)]]
+        df = DataFrame(data, columns = ['Variable', 'State'])
+            
+        df.to_json('preferences.json')
+    
+    def playMIDI(self, midiFile):       
+        musicFile = midiFile.replace('.png', '.mid')
+        
+        mixer.music.load(musicFile)
+        mixer.music.play()
+
                         
 # The menu bar
 class MenuBar():
@@ -317,7 +317,7 @@ class SightReadingTest(ttk.Frame):
         self.gButton.pack()
         
         if master.playTestSound is True:
-            self.playMIDI("music/midi/" + self.imageFolder + "/" + self.testImage)
+            master.playMIDI("music/midi/sightReading/" + self.testImage)
     
     def selectRandomImage(self, testTopic):
         if testTopic == "sightReading":
@@ -330,13 +330,14 @@ class SightReadingTest(ttk.Frame):
             self.imageFolder = choice(self.imageFolderOptions)
             imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
             self.testImage = choice(imagePitchOptions)
-    
+
     def buttonClicked(self, master, selectedButton, testTopic):
         self.questionCounter += 1
         
         if selectedButton == self.imageFolder:
             self.score += 1
-            self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
+            
+        self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
         self.selectRandomImage("sightReading")
         
@@ -345,13 +346,7 @@ class SightReadingTest(ttk.Frame):
         self.sightReadingImageLabel.configure(image = self.newImg)
         
         if master.playTestSound is True:
-            self.playMIDI("music/midi/" + testTopic + "/" + self.imageFolder + "/" + self.testImage)
-    
-    def playMIDI(self, midiFile):       
-        musicFile = midiFile.replace('.png', '.mid')
-        
-        mixer.music.load(musicFile)
-        mixer.music.play()
+            master.playMIDI("music/midi/sightReading/" + self.testImage)
 
 # Intervals tutorial
 class IntervalsTutorialPage(ttk.Frame):
@@ -399,7 +394,7 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.harmonicIntervalImageLabel.pack()
         
         if master.playTestSound is True:
-            self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+            master.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
         
         self.p5Button = ttk.Button(self, text = "P5", command = lambda: self.buttonClicked(master, "P5"))
         self.p5Button.pack()
@@ -426,14 +421,8 @@ class HarmonicIntervalsTest(ttk.Frame):
         self.harmonicIntervalImageLabel.configure(image = self.newImg)
         
         if master.playTestSound is True:
-            self.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
-    
-    def playMIDI(self, midiFile):       
-        musicFile = midiFile.replace('.png', '.mid')
-        
-        mixer.music.load(musicFile)
-        mixer.music.play()
-
+            master.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+            
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
     def __init__(self, master):
