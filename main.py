@@ -41,10 +41,11 @@ class musicApp(Tk):
             self.appTheme = self.setDefaultTheme()
             self.playTestSound = True
             
-            data = [['App Theme', self.appTheme], ['Play Music', 'True']]
-            df = DataFrame(data, columns = ['Variable', 'State'])
-            
-            df.to_json('preferences.json')
+            data = [
+                ['App Theme', self.appTheme],
+                ['Play Music', 'True']
+            ]
+            DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
         
         self.style = ThemedStyle(self)
         try:
@@ -130,15 +131,14 @@ class musicApp(Tk):
         # Instrument practice cascade
         menuBar.addMenuBar(
             "Instrument Practice", commands = [
-                ("Choose Song", lambda: app.switchPage(MusicSelectorPage))
+                ("Choose Song", lambda: self.switchPage(MusicSelectorPage))
             ]
         )
         
         # Preferences cascade
         menuBar.addMenuBar(
             "Preferences", commands = [
-                ("Settings", lambda: app.switchPage(SettingsPage)),
-                ("About", lambda: app.switchPage(AboutPage))
+                ("Settings", lambda: self.switchPage(SettingsPage))
             ]
         )
             
@@ -165,10 +165,12 @@ class musicApp(Tk):
         self.style.theme_use(newState)
         self.appTheme = newState
         
-        data = [['App Theme', self.appTheme], ['Play Music', str(self.playTestSound)]]
-        df = DataFrame(data, columns = ['Variable', 'State'])
-            
-        df.to_json('preferences.json')
+        data = [
+            ['App Theme', self.appTheme],
+            ['Play Music', str(self.playTestSound)]
+        ]
+        
+        DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
     
     def changePlaySoundTestVariable(self, currentState):
         if currentState == True:
@@ -179,18 +181,38 @@ class musicApp(Tk):
         
         self.playTestSound = newState
         
-        data = [['App Theme', self.appTheme], ['Play Music', str(self.playTestSound)]]
-        df = DataFrame(data, columns = ['Variable', 'State'])
-            
-        df.to_json('preferences.json')
+        data = [
+            ['App Theme', self.appTheme],
+            ['Play Music', str(self.playTestSound)]
+        ]
+        
+        DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
     
     def playMIDI(self, midiFile):       
         musicFile = midiFile.replace('.png', '.mid')
         
         mixer.music.load(musicFile)
         mixer.music.play()
-
-                        
+        
+    def selectRandomImage(self, testTopic):
+        imageFolderOptions = listdir(f"images/{testTopic}/")
+        imageFolder = choice(imageFolderOptions)
+        
+        if testTopic == "sightReading":
+            clef = choice(listdir(f"images/{testTopic}/{imageFolder}"))
+            imagePitchOptions = listdir(f"images/{testTopic}/{imageFolder}/{clef}")
+            
+        else:
+            imagePitchOptions = listdir(f"images/{testTopic}/{imageFolder}")
+            
+        testImage = choice(imagePitchOptions)
+        
+        if testTopic == "sightReading":
+            return imageFolder, clef, testImage
+        
+        else:
+            return imageFolder, testImage
+         
 # The menu bar
 class MenuBar():
     def __init__(self, master):
@@ -273,9 +295,9 @@ class SightReadingTest(ttk.Frame):
             except ValueError:  # In case the user does not open the folder, thus not creating a .DS_Store
                 pass
         
-        self.selectRandomImage("sightReading")
+        fileValues = master.selectRandomImage("sightReading")
         
-        sightReadingImage = Image.open("images/sightReading/" + self.imageFolder + "/" + self.clef + "/" + self.testImage)
+        sightReadingImage = Image.open(f"images/sightReading/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
         self.sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
         self.sightReadingImageLabel = Label(self, image = self.sightReadingImg)
         self.sightReadingImageLabel.pack()
@@ -318,19 +340,7 @@ class SightReadingTest(ttk.Frame):
         
         if master.playTestSound is True:
             master.playMIDI("music/midi/sightReading/" + self.testImage)
-    
-    def selectRandomImage(self, testTopic):
-        if testTopic == "sightReading":
-            self.imageFolder = choice(self.imageFolderOptions)
-            self.clef = choice(listdir("images/" + testTopic + "/" + self.imageFolder))
-            imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder + "/" + self.clef)
-            self.testImage = choice(imagePitchOptions)
-        
-        else:
-            self.imageFolder = choice(self.imageFolderOptions)
-            imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
-            self.testImage = choice(imagePitchOptions)
-
+            
     def buttonClicked(self, master, selectedButton, testTopic):
         self.questionCounter += 1
         
@@ -339,9 +349,9 @@ class SightReadingTest(ttk.Frame):
             
         self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
-        self.selectRandomImage("sightReading")
+        fileValues = master.selectRandomImage("sightReading")
         
-        newImage = Image.open("images/" + testTopic + "/" + self.imageFolder + "/" + self.clef + "/" + self.testImage)
+        newImage = Image.open(f"images/sightReading/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
         self.newImg = ImageTk.PhotoImage(newImage)
         self.sightReadingImageLabel.configure(image = self.newImg)
         
@@ -384,11 +394,15 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         # Get rid of the .DS_Store file as it crashes code
         if platform == "darwin":  # if the operating system is a Mac
-            self.imageFolderOptions.remove('.DS_Store')
+            try:
+                self.imageFolderOptions.remove('.DS_Store')
+            
+            except FileNotFoundError:
+                pass
         
-        self.selectRandomImage("intervals/harmonic")      
+        fileValues = master.selectRandomImage("intervals/harmonic")      
         
-        intervalImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+        intervalImage = Image.open(f"images/intervals/harmonic/{fileValues[0]}/{fileValues[1]}")
         self.intervalImg = ImageTk.PhotoImage(intervalImage)
         self.harmonicIntervalImageLabel = Label(self, image = self.intervalImg)
         self.harmonicIntervalImageLabel.pack()
@@ -440,7 +454,7 @@ class MusicSelectorPage(ttk.Frame):
         songFile = folderList[chosenSong]
         selectedSong = chosenSong
         
-        app.switchPage(MusicPlayerPage)
+        master.switchPage(MusicPlayerPage)
         
 # The music player
 class MusicPlayerPage(ttk.Frame):
@@ -603,15 +617,7 @@ class SettingsPage(ttk.Frame):
             self.playTestMusicCheckbox.state(["selected"])
         
         self.playTestMusicCheckbox.pack()
-        
-# About page
-class AboutPage(ttk.Frame):
-    def __init__(self, master):
-        ttk.Frame.__init__(self, master)
-        
-        aboutText = ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. ", font = ("TkDefaultFont", 20), justify = CENTER)
-        aboutText.pack()
-             
+                     
 #############
 # Main code #
 #############   
@@ -620,6 +626,4 @@ if __name__ == "__main__":
     mixer.pre_init(0, -16, 5, 512)
     mixer.init()
     
-    # Run the app
-    app = musicApp()
-    app.mainloop()
+    musicApp().mainloop()  # Run the app
