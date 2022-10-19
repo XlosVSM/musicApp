@@ -17,7 +17,6 @@ from pandas import DataFrame, read_json
 from darkdetect import isDark
 from random import choice
 from os import listdir
-from sys import platform
 
 ###########
 # Classes #
@@ -37,14 +36,16 @@ class musicApp(Tk):
             self.appTheme = userSettings.loc[0, "State",]
             self.playTestSound = bool(userSettings.loc[1, "State"])
         
-        except FileNotFoundError:
+        except FileNotFoundError:  # If it is the user's first time running the code or preferences is missing
             self.appTheme = self.setDefaultTheme()
             self.playTestSound = True
             
+            # Create the JSON file to store preferences
             data = [
                 ['App Theme', self.appTheme],
                 ['Play Music', 'True']
             ]
+            
             DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
         
         self.style = ThemedStyle(self)
@@ -57,14 +58,13 @@ class musicApp(Tk):
             self.style.set_theme(self.appTheme)
         
         # Get the song data
-        self.df = read_json("songInfo.json")
-        self.dfRange = len(self.df)
+        self.songPlayerDf = read_json("songInfo.json")
     
         # Create lists of the data from the JSON file to speed up the program     
-        self.songNameList = self.df.loc[:, "Song Name"].tolist()
-        self.songArtistList = self.df.loc[:, "Artist"].tolist()
-        self.songAlbumList = self.df.loc[:, "Album"].tolist()
-        self.albumCoverList = self.df.loc[:, "Album Cover"].tolist()
+        self.songNameList = self.songPlayerDf.loc[:, "Song Name"].tolist()
+        self.songArtistList = self.songPlayerDf.loc[:, "Artist"].tolist()
+        self.songAlbumList = self.songPlayerDf.loc[:, "Album"].tolist()
+        self.albumCoverList = self.songPlayerDf.loc[:, "Album Cover"].tolist()
         
         self.createMenuBar()
         
@@ -73,15 +73,15 @@ class musicApp(Tk):
         self.switchPage(StartPage)
     
     def setDefaultTheme(self): 
-        if isDark() is True:
-            appTheme = "equilux"
+        if isDark() is True:  # isDark() checks if the user's device has their default theme as dark or light
+            appTheme = "equilux"  # equilux is the dark theme
     
         else:
-            appTheme = "yaru"
+            appTheme = "yaru"  # yaru is the light theme
         
         return appTheme
     
-    def null(self):
+    def null(self):  # Pass for the menu bar as you have to put a definition in
         pass
 
     def createMenuBar(self):
@@ -147,6 +147,7 @@ class musicApp(Tk):
         for mixerChannel in range(5):
             mixer.Channel(mixerChannel).stop()
         
+        # Change the page/frame
         newFrame = frameClass(self)
         
         if self._frame is not None:
@@ -155,7 +156,7 @@ class musicApp(Tk):
         self._frame = newFrame
         self._frame.pack()
 
-    def changeTheme(self, currentState):  # Change the program's theme when the button is clicked
+    def changeTheme(self, currentState):
         if currentState == "equilux":
             newState = "yaru"
         
@@ -165,6 +166,7 @@ class musicApp(Tk):
         self.style.theme_use(newState)
         self.appTheme = newState
         
+        # Update the JSON file
         data = [
             ['App Theme', self.appTheme],
             ['Play Music', str(self.playTestSound)]
@@ -174,13 +176,12 @@ class musicApp(Tk):
     
     def changePlaySoundTestVariable(self, currentState):
         if currentState == True:
-            newState = False
+            self.playTestSound = False
             
         else:
-            newState = True
+            self.playTestSound = True
         
-        self.playTestSound = newState
-        
+        # Update the JSON file
         data = [
             ['App Theme', self.appTheme],
             ['Play Music', str(self.playTestSound)]
@@ -188,31 +189,20 @@ class musicApp(Tk):
         
         DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
     
-    def playMIDI(self, midiFile):       
-        musicFile = midiFile.replace('.png', '.mid')
+    def playMIDI(self, selectedMIDIFile):  # Play the MIDI files used in the tests   
+        midiFileLocation = "music/midi/" + selectedMIDIFile
+        midiFile = midiFileLocation.replace('.png', '.mid')
         
-        mixer.music.load(musicFile)
+        mixer.music.load(midiFile)
         mixer.music.play()
         
     def selectRandomImage(self, testTopic):
-        imageFolderOptions = listdir(f"images/{testTopic}/")
-        imageFolder = choice(imageFolderOptions)
+        imageFolder = choice(listdir(f"images/{testTopic}"))
+        clef = choice(listdir(f"images/{testTopic}/{imageFolder}"))
+        testImage = choice(listdir(f"images/{testTopic}/{imageFolder}/{clef}"))
         
-        if testTopic == "sightReading":
-            clef = choice(listdir(f"images/{testTopic}/{imageFolder}"))
-            imagePitchOptions = listdir(f"images/{testTopic}/{imageFolder}/{clef}")
-            
-        else:
-            imagePitchOptions = listdir(f"images/{testTopic}/{imageFolder}")
-            
-        testImage = choice(imagePitchOptions)
-        
-        if testTopic == "sightReading":
-            return imageFolder, clef, testImage
-        
-        else:
-            return imageFolder, testImage
-         
+        return imageFolder, clef, testImage
+    
 # The menu bar
 class MenuBar():
     def __init__(self, master):
@@ -246,14 +236,17 @@ class StartPage(ttk.Frame):
         self.grid_rowconfigure(0, weight = 1)
         self.grid_rowconfigure(1, weight = 0)
         
+        # Title
         self.header = ttk.Label(self, text = " Music Learning App ", font = ("Helvetica", 64))
         self.header.grid(row = 0, columnspan = 5, sticky = E + W)
         
+        # Image of the treble clef
         trebleImage = Image.open("images/trebleClef.png")
         self.trebleImg = ImageTk.PhotoImage(trebleImage)
         self.trebleImageLabel = Label(self, image = self.trebleImg)
         self.trebleImageLabel.grid(rowspan = 4, column = 0)
         
+        # Buttons which will lead to the relevant page for every section
         self.instrumentRoleButton = ttk.Button(self, text = "Instrument Roles")
         self.instrumentRoleButton.grid(row = 1, column = 1, sticky = N + S + E + W)
         
@@ -282,26 +275,18 @@ class SightReadingTest(ttk.Frame):
         
         # Add score counter
         self.score = 0
-        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score) + "/" + str(self.questionCounter), font = ("TkDefaultFont", 32))
+        self.scoreCounter = ttk.Label(self, text = f"Score: {str(self.score)}/{str(self.questionCounter)}", font = ("TkDefaultFont", 32))
         self.scoreCounter.pack()
-        
-        self.imageFolderOptions = listdir("images/sightReading/")
-        
-        # Get rid of the .DS_Store file as it crashes code
-        if platform == "darwin":  # if the operating system is a Mac
-            try:
-                self.imageFolderOptions.remove('.DS_Store')
-            
-            except ValueError:  # In case the user does not open the folder, thus not creating a .DS_Store
-                pass
         
         fileValues = master.selectRandomImage("sightReading")
         
+        # Create the image of a random note
         sightReadingImage = Image.open(f"images/sightReading/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
         self.sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
         self.sightReadingImageLabel = Label(self, image = self.sightReadingImg)
         self.sightReadingImageLabel.pack()
         
+        # Creating the buttons for all the notes
         self.aFlatButton = ttk.Button(self, text = "Ab", command = lambda: self.buttonClicked(master, "Ab", "sightReading"))
         self.aFlatButton.pack()
         
@@ -338,8 +323,9 @@ class SightReadingTest(ttk.Frame):
         self.gButton = ttk.Button(self, text = "G", command = lambda: self.buttonClicked(master, "G", "sightReading"))
         self.gButton.pack()
         
+        # Play the corresponding MIDI file if the user has selected the option
         if master.playTestSound is True:
-            master.playMIDI("music/midi/sightReading/" + self.testImage)
+            master.playMIDI(f"sightReading/{self.testImage}")
             
     def buttonClicked(self, master, selectedButton, testTopic):
         self.questionCounter += 1
@@ -347,7 +333,7 @@ class SightReadingTest(ttk.Frame):
         if selectedButton == self.imageFolder:
             self.score += 1
             
-        self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
+        self.scoreCounter.config(text = f"Score: {str(self.score)}/{str(self.questionCounter)}")
         
         fileValues = master.selectRandomImage("sightReading")
         
@@ -356,24 +342,28 @@ class SightReadingTest(ttk.Frame):
         self.sightReadingImageLabel.configure(image = self.newImg)
         
         if master.playTestSound is True:
-            master.playMIDI("music/midi/sightReading/" + self.testImage)
+            master.playMIDI(f"sightReading/{self.testImage}")
 
 # Intervals tutorial
 class IntervalsTutorialPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
+        # Show an image of examples of intervals
         intervalExampleImage = Image.open("images/exampleIntervals.png")  # Hyacinth, CC BY-SA 3.0, via Wikimedia Commons+
         self.intervalExampleImg = ImageTk.PhotoImage(intervalExampleImage)
         self.intervalExampleImageLabel = Label(self, image = self.intervalExampleImg)
         self.intervalExampleImageLabel.pack()
         
+        # Give an explanation on intervals
         informationLabel = ttk.Label(self, text = '''Intervals is the distance between two notes. Above is a picture showing what all the\nintervals will look like at the tonic of middle C. The way to tell what the interval is by\ncounting how many lines and gaps there are between the notes starting on the first note.\nFor example, a perfect fourth would have 4 lines and gaps in between it.\n''', font = ("TkDefaultFont", 20), justify =  CENTER)
         informationLabel.pack()
         
+        # Button to the harmonic interval test
         harmonicIntervalTestButton = ttk.Button(self, text = "Harmonic Interval Test", command = lambda: master.switchPage(HarmonicIntervalsTest))
         harmonicIntervalTestButton.pack()
         
+        # Button to the melodic interval test
         melodicIntervalTestButton = ttk.Button(self, text = "Melodic Interval Test")
         melodicIntervalTestButton.pack()
 
@@ -387,68 +377,60 @@ class HarmonicIntervalsTest(ttk.Frame):
         
         # Add score counter
         self.score = 0
-        self.scoreCounter = ttk.Label(self, text = "Score: " + str(self.score) + "/" + str(self.questionCounter), font = ("TkDefaultFont", 32))
+        self.scoreCounter = ttk.Label(self, text = f"Score: {str(self.score)}/{str(self.questionCounter)}", font = ("TkDefaultFont, 32"))
         self.scoreCounter.pack()
-        
-        self.imageFolderOptions = listdir("images/intervals/harmonic")
-        
-        # Get rid of the .DS_Store file as it crashes code
-        if platform == "darwin":  # if the operating system is a Mac
-            try:
-                self.imageFolderOptions.remove('.DS_Store')
-            
-            except FileNotFoundError:
-                pass
         
         fileValues = master.selectRandomImage("intervals/harmonic")      
         
-        intervalImage = Image.open(f"images/intervals/harmonic/{fileValues[0]}/{fileValues[1]}")
+        # Create the image of a random interval
+        intervalImage = Image.open(f"images/intervals/harmonic/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
         self.intervalImg = ImageTk.PhotoImage(intervalImage)
         self.harmonicIntervalImageLabel = Label(self, image = self.intervalImg)
         self.harmonicIntervalImageLabel.pack()
         
-        if master.playTestSound is True:
-            master.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
-        
+        # Create buttons of the intervals being tested
         self.p5Button = ttk.Button(self, text = "P5", command = lambda: self.buttonClicked(master, "P5"))
         self.p5Button.pack()
         
         self.octaveButton = ttk.Button(self, text = "Octave", command = lambda: self.buttonClicked(master, "Octave"))
         self.octaveButton.pack()
-    
-    def selectRandomImage(self, testTopic):
-        self.imageFolder = choice(self.imageFolderOptions)
-        imagePitchOptions = listdir("images/" + testTopic + "/" + self.imageFolder)
-        self.testImage = choice(imagePitchOptions)
+        
+        # Play the corresponding MIDI file if the user has selected the option
+        if master.playTestSound is True:
+            master.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
     
     def buttonClicked(self, master, selectedButton):
+        # Update the score counter
         self.questionCounter += 1
         
         if selectedButton == self.imageFolder:
             self.score += 1
             self.scoreCounter.config(text = "Score: " + str(self.score) + "/" + str(self.questionCounter))
         
-        self.selectRandomImage("intervals/harmonic")
+        fileValues = master.selectRandomImage("intervals/harmonic")
         
-        newImage = Image.open("images/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+        # Update the image
+        newImage = Image.open(f"images/intervals/harmonic/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
         self.newImg = ImageTk.PhotoImage(newImage)
         self.harmonicIntervalImageLabel.configure(image = self.newImg)
         
+        # Play the corresponding MIDI file if the user has selected the option
         if master.playTestSound is True:
-            master.playMIDI("music/midi/intervals/harmonic/" + self.imageFolder + "/" + self.testImage)
+            master.playMIDI(f"intervals/harmonic/{fileValues[0]}/{self.testImage}")
             
 # List of all the songs users can practice along to
 class MusicSelectorPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
-        for song in range(master.dfRange):
+        # Create a button for all the song options
+        for song in range(len(master.songPlayerDf)):
             ttk.Button(self, text = master.songNameList[song], command = lambda i=song: self.playSong(master, i)).pack()
         
     def playSong(self, master, chosenSong):
         global selectedSong, songFile  # Only global part until I can find a way to bring the variables into another page
         
-        folders = master.df.loc[:, "Folder"]
+        folders = master.songPlayerDf.loc[:, "Folder"]
         folderList = folders.tolist()
         
         songFile = folderList[chosenSong]
@@ -458,8 +440,7 @@ class MusicSelectorPage(ttk.Frame):
         
 # The music player
 class MusicPlayerPage(ttk.Frame):
-    def __init__(self, master):        
-        # Credit for play/pause buttons: © 2014 Andreas Kainz & Uri Herrera & Andrew Lake & Marco Martin & Harald Sitter & Jonathan Riddell & Ken Vermette & Aleix Pol & David Faure & Albert Vaca & Luca Beltrame & Gleb Popov & Nuno Pinheiro & Alex Richardson & Jan Grulich & Bernhard Landauer & Heiko Becker & Volker Krause & David Rosca & Phil Schaf / KDE
+    def __init__(self, master):
         ttk.Frame.__init__(self, master)
         
         # Call the corresponding song data
@@ -474,34 +455,40 @@ class MusicPlayerPage(ttk.Frame):
         self.albumCoverLabel = Label(self, image = self.albumCoverImg)
         self.albumCoverLabel.grid(rowspan = 6, columnspan = 6)
         
-        songName = ttk.Label(self, text = "Title: " + chosenSongTitle + " ", font = ("Helvetica", 20), justify = CENTER)
+        songName = ttk.Label(self, text = f"Title: {chosenSongTitle} ", font = ("Helvetica", 20), justify = CENTER)
         songName.grid(row = 0, column = 6, columnspan = 3)
         
-        artistName = ttk.Label(self, text = "Artist: " + chosenSongArtist + " ", font = ("Helvetica", 20), justify = CENTER)
+        artistName = ttk.Label(self, text = f"Artist: {chosenSongArtist} ", font = ("Helvetica", 20), justify = CENTER)
         artistName.grid(row = 2, column = 6, columnspan = 3)
         
-        albumName = ttk.Label(self, text = "Album: " + chosenSongAlbum + " ", font = ("Helvetica", 20), justify = CENTER)
+        albumName = ttk.Label(self, text = f"Album: {chosenSongAlbum} ", font = ("Helvetica", 20), justify = CENTER)
         albumName.grid(row = 4, column = 6, columnspan = 3)
         
         # Play the song
         self.file = "music/stems/" + songFile
         
+        # Create the channels so the user can control what parts they hear
+        # Bass's channel
         self.channel1 = mixer.Channel(0)
         channel1Sound = mixer.Sound(self.file + "/bass.wav")
         self.channel1.play(channel1Sound)
-
+        
+        # Drums's channel
         self.channel2 = mixer.Channel(1)
         channel2Sound = mixer.Sound(self.file + "/drums.wav")
         self.channel2.play(channel2Sound)
-
+        
+        # Other part's channel
         self.channel3 = mixer.Channel(2)
         channel3Sound = mixer.Sound(self.file + "/other.wav")
         self.channel3.play(channel3Sound)
-
+        
+        # Piano's channel
         self.channel4 = mixer.Channel(3)
         channel4Sound = mixer.Sound(self.file + "/piano.wav")
         self.channel4.play(channel4Sound)
-
+        
+        # Vocals's channel
         self.channel5 = mixer.Channel(4)
         channel5Sound = mixer.Sound(self.file + "/vocals.wav")
         self.channel5.play(channel5Sound)
