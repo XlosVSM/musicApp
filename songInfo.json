@@ -8,14 +8,14 @@
     },
     {
         "Artist": "Radiohead",
-        "Song Name": "Pyramid Song",
+        "Song Name": "     Pyramid Song     ",
         "Album": "Amnesiac",
         "Album Cover": "amnesiac.png",
         "Folder": "Radiohead_PyramidSong"
     },
     {
         "Artist": "Tame Impala",
-        "Song Name": "Elephant",
+        "Song Name": "          Elephant          ",
         "Album": "Lonerism",
         "Album Cover": "lonerism.png",
         "Folder": "TameImpala_Elephant"
