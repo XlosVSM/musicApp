@@ -175,11 +175,13 @@ class musicApp(Tk):
         DataFrame(data, columns = ['Variable', 'State']).to_json('preferences.json')
     
     def changePlaySoundTestVariable(self, currentState):
-        if currentState == True:
-            self.playTestSound = False
+        if currentState == False:
+            self.playTestSound = True
             
         else:
-            self.playTestSound = True
+            self.playTestSound = False
+        
+        print(self.playTestSound)
         
         # Update the JSON file
         data = [
@@ -198,8 +200,11 @@ class musicApp(Tk):
         
     def selectRandomImage(self, testTopic):
         imageFolder = choice(listdir(f"images/{testTopic}"))
+        print(imageFolder)
         clef = choice(listdir(f"images/{testTopic}/{imageFolder}"))
+        print(clef)
         testImage = choice(listdir(f"images/{testTopic}/{imageFolder}/{clef}"))
+        print(testImage)
         
         return imageFolder, clef, testImage
     
@@ -278,10 +283,10 @@ class SightReadingTest(ttk.Frame):
         self.scoreCounter = ttk.Label(self, text = f"Score: {str(self.score)}/{str(self.questionCounter)}", font = ("TkDefaultFont", 32))
         self.scoreCounter.pack()
         
-        fileValues = master.selectRandomImage("sightReading")
+        self.fileValues = master.selectRandomImage("sightReading")
         
         # Create the image of a random note
-        sightReadingImage = Image.open(f"images/sightReading/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
+        sightReadingImage = Image.open(f"images/sightReading/{self.fileValues[0]}/{self.fileValues[1]}/{self.fileValues[2]}")
         self.sightReadingImg = ImageTk.PhotoImage(sightReadingImage)
         self.sightReadingImageLabel = Label(self, image = self.sightReadingImg)
         self.sightReadingImageLabel.pack()
@@ -325,24 +330,24 @@ class SightReadingTest(ttk.Frame):
         
         # Play the corresponding MIDI file if the user has selected the option
         if master.playTestSound is True:
-            master.playMIDI(f"sightReading/{self.testImage}")
+            master.playMIDI(f"sightReading/{self.fileValues[0]}/{self.fileValues[2]}")
             
     def buttonClicked(self, master, selectedButton, testTopic):
         self.questionCounter += 1
         
-        if selectedButton == self.imageFolder:
+        if selectedButton == self.fileValues[0]:
             self.score += 1
             
         self.scoreCounter.config(text = f"Score: {str(self.score)}/{str(self.questionCounter)}")
         
-        fileValues = master.selectRandomImage("sightReading")
+        newFileValues = master.selectRandomImage("sightReading")
         
-        newImage = Image.open(f"images/sightReading/{fileValues[0]}/{fileValues[1]}/{fileValues[2]}")
+        newImage = Image.open(f"images/sightReading/{newFileValues[0]}/{newFileValues[1]}/{newFileValues[2]}")
         self.newImg = ImageTk.PhotoImage(newImage)
         self.sightReadingImageLabel.configure(image = self.newImg)
         
         if master.playTestSound is True:
-            master.playMIDI(f"sightReading/{self.testImage}")
+            master.playMIDI(f"sightReading/{newFileValues[0]}/{newFileValues[2]}")
 
 # Intervals tutorial
 class IntervalsTutorialPage(ttk.Frame):
