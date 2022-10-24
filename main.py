@@ -122,7 +122,6 @@ class musicApp(Tk):
         # Terminology cascade
         menuBar.addMenuBar(
             "Terminology", commands = [
-                ("Tutorial", lambda: self.switchPage(TerminologyTutorialPage)),
                 ("Flash Cards", lambda: self.switchPage(TerminologyFlashCardsPage))
             ]
         )
@@ -243,14 +242,7 @@ class MenuBar():
             menu.add_command(label = command[0], command = command[1])
             
         self.menuBar.add_cascade(label = menuName, menu = menu)
-
-# Make bigger
-# Put about page back
-# Link sight reading button to test
-# Make buttons bigger
-# Change shade of buttons in test
-# Put a brief explanation for instrument practice
-
+        
 # The opening page
 class StartPage(ttk.Frame):
     def __init__(self, master):       
@@ -404,12 +396,10 @@ class MelodicIntervalsTest(ttk.Frame):
         self.octaveButton = Button(self, text = "Octave", command = lambda: self.buttonClicked(master, "Octave"), height = 8, width = 8)
         self.octaveButton.pack(side = RIGHT, fill = 'x', padx = 128)
 
-        # Maybe add a blank line
-
         # Play the corresponding MIDI file if the user has selected the option
         if master.playTestSound is True:
             master.playMIDI(f"intervals/melodic/{self.fileValues[0]}/{self.fileValues[2]}")
-    
+
     def buttonClicked(self, master, selectedButton):
         # Update the score counter
         self.questionCounter += 1
@@ -435,7 +425,21 @@ class SightReadingTutorialPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
 
-        ttk.Label(self, text = "shut up meg").pack()
+        # Show an image of examples of notes in treble
+        sightReadingExampleImage = Image.open("images/exampleSightReading.png")  # Image made by Matthew McDermott using Musescore
+        self.sightReadingExampleImg = ImageTk.PhotoImage(sightReadingExampleImage.resize((800, 150)))
+        self.sightReadingExampleLabel = Label(self, image = self.sightReadingExampleImg)
+        self.sightReadingExampleLabel.pack()
+
+        informationPart1Label = ttk.Label(self, text = "\n In music theory, it is useful to know what note you are reading on the sheet music. Shown above is \n an image with all the notes in the treble clef you are expected to know for the test. The notes go from  \n A to G alphabetically. When you reach G, you go back to A for the next note.", font = ("TkDefaultTheme", 20), justify =  CENTER)
+        informationPart1Label.pack()
+
+        informationPart2Label = ttk.Label(self, text = '''\n Sharps are shown by a hashtag on the left, and flats are shown by a lowercase b on the left. To make \n it easier, there are methods you can use to figure what the note is quicker. If the note is in a gap \n between the lines, spell FACE from the bottom gap up. If the note is on a line, use the phrase "Every \n Good Boy Deserves Fish". \n''',  font = ("TkDefaultTheme", 20), justify = CENTER)
+        informationPart2Label.pack()
+
+        # Button to the sight reading test
+        harmonicIntervalTestButton = Button(self, text = "Sight Reading Test", command = lambda: master.switchPage(SightReadingTest), height = 8)
+        harmonicIntervalTestButton.pack()
 
 # Sight reading test
 class SightReadingTest(ttk.Frame):
@@ -517,21 +521,18 @@ class SightReadingTest(ttk.Frame):
         self.sightReadingImageLabel.configure(image = self.newImg)
         
         if master.playTestSound is True:
-            master.playMIDI(f"sightReading/{newFileValues[0]}/{newFileValues[2]}")
-
-# Terminology tutorial page
-class TerminologyTutorialPage(ttk.Frame):
-    def __init__(self, master):
-        ttk.Frame.__init__(self, master)
-
-        ttk.Label(self, text = "Supercalifragilisticxpalidocious").pack()
+            master.playMIDI(f"sightReading/{newFileValues[0]}/{newFileValues[2]}") 
 
 # Terminology flash cards page
 class TerminologyFlashCardsPage(ttk.Frame):
     def __init__(self, master):
         ttk.Frame.__init__(self, master)
 
-        chosenTerm = randint(0,1)
+        # Header
+        ttk.Label(self, text = "Improve your knowledge of music\nterminology using flash cards.\n", font = ("TkDefaultTheme", 32), justify = CENTER).pack()
+
+        # Choose a random theory term
+        chosenTerm = randint(0, len(master.terminologyTerm) - 1)
         self.term = master.terminologyTerm[chosenTerm]
         self.description = master.terminologyDescription[chosenTerm]
         
@@ -544,13 +545,13 @@ class TerminologyFlashCardsPage(ttk.Frame):
         self.termFlashCard.pack()
         flashCard.create_window(270, 270, window = self.termFlashCard)
 
-        # Pick a new card button
-        self.newCardButton = Button(self, text = "  Pick a new card  ", command = lambda: self.newFlashCard(master), font = ("TkDefaultTheme", 32))
-        self.newCardButton.pack()
-
         # Flip card
-        self.flipButton = Button(self, text = "Flip the flash card", command = self.flipFlashCard, font = ("TkDefaultTheme", 32))
-        self.flipButton.pack()
+        self.flipButton = Button(self, text = "Flip card", command = self.flipFlashCard, font = ("TkDefaultTheme", 32))
+        self.flipButton.pack(side = LEFT)
+
+        # Pick a new card button
+        self.newCardButton = Button(self, text = "New card", command = lambda: self.newFlashCard(master), font = ("TkDefaultTheme", 32))
+        self.newCardButton.pack(side = RIGHT)
 
     def newFlashCard(self, master):
         newChosenTerm = randint(0,1)
@@ -770,7 +771,8 @@ class AboutPage(ttk.Frame):
         ttk.Label(self, text = "Music Learning App", font = ("TkDefaultTheme", 64)).pack()
         ttk.Label(self, text = 'by Matthew McDermott', font = ("TkDefaultTheme", 24)).pack()
         ttk.Label(self, text = "\nPURPOSE: A digital technology NCEA Level 3 project. This is a music learning app for intermediate level music students.\n", font = ("TkDefaultTheme", 20)).pack()
-        ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I want to include is a music player that users can customise to hear\nwhat they want. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n\nIn the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging NZ$8.99\n(like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila Music). My\n program will be free to use, contain the necessary lessons that beginners can use intuitively, and contain some fun play-along features not available in other apps. \n", font = ("TkDefaultFont", 20), justify = CENTER).pack()
+        ttk.Label(self, text = "My intended outcome is to make a Graphical User Interface (GUI) to help people learn aspects of music theory, understand some musical\nfundamentals, and practice their instruments.  A particularly innovative feature I have used is a music player that users can customise to hear\nindividual parts. For example, vocals can be removed from a track so the user can use it like a karaoke machine. Alternatively, the bass can be\n removed from the track if the user wants to practice bass by playing along with the songs.\n", font = ("TkDefaultFont", 20), justify = CENTER).pack()
+        ttk.Label(self, text = "In the market today, some apps and programs do have these functions, only with some significant drawbacks. They are either pay-to-use, averaging\n NZ$8.99 (like the ABRSM Aural Trainer app), too complicated for my age group (like the UCLA Music Theory app), or too basic to be useful (like Mussila \nMusic). My program will be free to use, contain the necessary lessons that beginners and intermediate students can use intuitively, and contain\nsome fun play-along features not available in other apps. \n", font = ("TkDefaultFont", 20), justify = CENTER).pack()
         ttk.Label(self, text = "\n\nCopyright 2022\n", font = ("TkDefaultTheme", 24)).pack()
                      
 #############

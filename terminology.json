@@ -4,7 +4,95 @@
         "Description": "Return to the original tempo"
     },
     {
+        "Term": "accelerando (accel.)",
+        "Description": "Gradually get faster (accelerate)"
+    },
+    {
+        "Term": "Adagio",
+        "Description": "Slow and stately (55-65BPM)"
+    },
+    {
+        "Term": "Allegretto",
+        "Description": "Moderately fast (98-109BPM)"
+    },
+    {
+        "Term": "Allegro",
+        "Description": "Fast, quickly and bright (109-132BPM)"
+    },
+    {
+        "Term": "Andante",
+        "Description": "At a walking pace (73-77BPM)"
+    },
+    {
+        "Term": "cantabile",
+        "Description": "In a smooth singing style (singable)"
+    },
+    {
+        "Term": "crescendo (cresc.)",
+        "Description": "Gradually getting louder)"
+    },
+    {
+        "Term": "da capo (D.C.)",
+        "Description": "From the beginning"
+    },
+    {
+        "Term": "decrescendo (decresc.)",
+        "Description": "Gradually getting softer"
+    },
+    {
+        "Term": "diminuendo (dim.)",
+        "Description": "Gradually getting softer and slows down"
+    },
+    {
+        "Term": "dolce",
+        "Description": "Sweetly"
+    },
+    {
+        "Term": "Forte (f)",
+        "Description": "Loudly"
+    },
+    {
         "Term": "Fortissimo (ff)",
         "Description": "Very loudly"
+    },
+    {
+        "Term": "fine, al fine",
+        "Description": "End of the piece"
+    },
+    {
+        "Term": "legato",
+        "Description": "Play in a smooth flowing manner"
+    },
+    {
+        "Term": "Mezzo forte (mf)",
+        "Description": "Moderately loud"
+    },
+    {
+        "Term": "Mezzo piano (mp)",
+        "Description": "Moderately soft"
+    },
+    {
+        "Term": "Moderato",
+        "Description": "Moderately (86-97BPM)"
+    },
+    {
+        "Term": "Piano (p)",
+        "Description": "Softly"
+    },
+    {
+        "Term": "Pianissimo (pp)",
+        "Description": "Very softly"
+    },
+    {
+        "Term": "rallentando (rall.)",
+        "Description": "Gradually decreasing in speed"
+    },
+    {
+        "Term": "ritardando (ritard. or rit.)",
+        "Description": "Gradually decreasing in speed"
+    },
+    {
+        "Term": "Staccato (stacc.)",
+        "Description": "With each note sharply detached or separated from the others"
     }
 ]
