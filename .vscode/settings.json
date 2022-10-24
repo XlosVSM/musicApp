@@ -28,5 +28,7 @@
         "ttkthemes",
         "wraplength",
         "yaru"
-    ]
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylamaEnabled": true
 }
