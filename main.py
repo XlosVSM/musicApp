@@ -743,7 +743,9 @@ class MusicPlayerPage(ttk.Frame):
     def vocalVolume(self, x):
         volume = self.vocalsSlider.get() / 100
         self.channel5.set_volume(volume)
-        
+
+# Make settings page uniform in style with rest of app
+
 # The settings page       
 class SettingsPage(ttk.Frame):
     def __init__(self, master):        
